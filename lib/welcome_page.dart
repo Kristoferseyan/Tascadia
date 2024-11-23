@@ -37,7 +37,11 @@ class WelcomePage extends StatelessWidget {
               Icons.edit_note,
               const Color(0xFFF3D9B1),
               () {
-                Navigator.pushNamed(context, '/dashboard'); 
+                Navigator.pushNamed(
+                  context,
+                  '/login_register',
+                  arguments: 'TaskPoster', 
+                );
               },
             ),
             const SizedBox(height: 20),
@@ -48,8 +52,11 @@ class WelcomePage extends StatelessWidget {
               Icons.handyman,
               const Color(0xFFF3D9B1),
               () {
-                
-                Navigator.pushNamed(context, '/taskdoer_dashboard'); 
+                Navigator.pushNamed(
+                  context,
+                  '/login_register',
+                  arguments: 'TaskDoer', 
+                );
               },
             ),
           ],
@@ -65,7 +72,7 @@ class WelcomePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2B39), 
+          color: const Color(0xFF2A2B39),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

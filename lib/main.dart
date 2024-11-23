@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tascadia_prototype/logreg.dart';
 import 'welcome_page.dart';
-import 'tp_dashboard_page.dart';
+import 'Dashboard-Modules/tp_dashboard_page.dart';
 import 'tp_settings_page.dart';
 import 'tp_tasks_page.dart';
 
-void main() {
+Future<void> main() async {
+  await Supabase.initialize(
+    url: 'https://ebexpwjowwgvxbzbausd.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZXhwd2pvd3dndnhiemJhdXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIzMTkzNTIsImV4cCI6MjA0Nzg5NTM1Mn0.bG7zifFauy-XMX08yKQ9SoaWSy_SL7WfM0ae_FyVYLc',
+  );
+
   runApp(TascadiaApp());
 }
+
+final supabase = Supabase.instance.client;
+
 
 class TascadiaApp extends StatelessWidget {
   @override
@@ -23,6 +33,16 @@ class TascadiaApp extends StatelessWidget {
         '/tasks': (context) => TasksPage(),
         '/dashboard': (context) => TaskPosterDashboard(),
         '/settings': (context) => SettingsPage(),
+      },
+      
+      onGenerateRoute: (settings) {
+        if (settings.name == '/login_register') {
+          final args = settings.arguments as String; 
+          return MaterialPageRoute(
+            builder: (context) => LoginRegisterPage(role: args),
+          );
+        }
+        return null; 
       },
       debugShowCheckedModeBanner: false,
     );

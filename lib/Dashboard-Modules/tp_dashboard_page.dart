@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'nav_bar.dart';
+import 'package:tascadia_prototype/Dashboard-Modules/task_creation.dart';
+import '../colors.dart';
+import '../nav_bar.dart';
+import '../database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
+  const TaskPosterDashboard({super.key});
+
   @override
   _TaskPosterDashboardState createState() => _TaskPosterDashboardState();
 }
@@ -9,6 +14,40 @@ class TaskPosterDashboard extends StatefulWidget {
 class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   int _selectedIndex = 1;
   final PageController _pageController = PageController(initialPage: 1);
+  final DatabaseHandler dbHandler = DatabaseHandler();
+
+  List<dynamic> tasks = [];
+  String userName = 'User';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserDataAndTasks();
+  }
+
+  Future<void> fetchUserDataAndTasks() async {
+    try {
+      final userId = await dbHandler.getCurrentUserId(); // Fetch the logged-in user ID
+      if (userId == null) throw Exception("No user logged in.");
+
+      final userData = await dbHandler.fetchUserById(userId);
+      final fetchedTasks = await dbHandler.fetchTasks(userId);
+
+      setState(() {
+        userName = userData['username'] ?? 'User';
+        tasks = fetchedTasks;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: $e')),
+      );
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -17,13 +56,33 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
     _pageController.jumpToPage(index);
   }
 
+  void _showTaskCreationModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          top: 16.0,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: TaskCreationForm(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1F2B),
+      backgroundColor: AppColors.background,
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -32,9 +91,13 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
           });
         },
         children: [
-          Center(child: Text("Tasks Page", style: TextStyle(color: Colors.white))),
+          const Center(
+            child: Text("Tasks Page", style: TextStyle(color: AppColors.textPrimary)),
+          ),
           _buildDashboardContent(screenWidth, screenHeight),
-          Center(child: Text("Settings Page", style: TextStyle(color: Colors.white))),
+          const Center(
+            child: Text("Settings Page", style: TextStyle(color: AppColors.textPrimary)),
+          ),
         ],
       ),
       bottomNavigationBar: CustomNavBar(
@@ -47,7 +110,9 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   Widget _buildDashboardContent(double screenWidth, double screenHeight) {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.04, vertical: screenHeight * 0.06),
+        horizontal: screenWidth * 0.04,
+        vertical: screenHeight * 0.06,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -55,31 +120,30 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
             children: [
               CircleAvatar(
                 radius: screenWidth * 0.06,
-                backgroundColor: Color(0xFFF9C270),
-                child: Icon(Icons.person, color: Colors.white, size: screenWidth * 0.06),
+                backgroundColor: AppColors.accent,
+                child: Icon(Icons.person, color: AppColors.textPrimary, size: screenWidth * 0.06),
               ),
               SizedBox(width: screenWidth * 0.03),
               Text(
-                "Welcome, Sean!",
+                "Welcome, $userName!",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: screenWidth * 0.05,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               IconButton(
-                icon: Icon(Icons.notifications, color: Colors.white, size: screenWidth * 0.07),
+                icon: Icon(Icons.notifications, color: AppColors.textPrimary, size: screenWidth * 0.07),
                 onPressed: () {},
               ),
             ],
           ),
           SizedBox(height: screenHeight * 0.03),
-
           Text(
             "Categories",
             style: TextStyle(
-              color: Color(0xFFF9C270),
+              color: AppColors.accent,
               fontSize: screenWidth * 0.045,
               fontWeight: FontWeight.bold,
             ),
@@ -98,38 +162,43 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
             ),
           ),
           SizedBox(height: screenHeight * 0.02),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "Your Posted Tasks",
                 style: TextStyle(
-                  color: Color(0xFFF9C270),
+                  color: AppColors.accent,
                   fontSize: screenWidth * 0.05,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.add_circle, color: Color(0xFFF9C270), size: screenWidth * 0.07),
-                onPressed: () {
-                  
-                },
+                icon: Icon(Icons.add_circle, color: AppColors.accent, size: screenWidth * 0.07),
+                onPressed: _showTaskCreationModal,
               ),
             ],
           ),
           SizedBox(height: screenHeight * 0.015),
-
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildTaskCard("Design a Logo", "In Progress", "Due: Nov 15", screenWidth),
-                _buildTaskCard("House Cleaning", "Pending", "Due: Nov 20", screenWidth),
-                _buildTaskCard("Grocery Delivery", "Completed", "Due: Nov 10", screenWidth),
-              ],
-            ),
-          ),
+          isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.accent),
+                )
+              : Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return _buildTaskCard(
+                        task['title'],
+                        task['status'],
+                        task['due_date'],
+                        screenWidth,
+                      );
+                    },
+                  ),
+                ),
         ],
       ),
     );
@@ -139,11 +208,11 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
     return Padding(
       padding: EdgeInsets.only(right: screenWidth * 0.02),
       child: Chip(
-        backgroundColor: const Color(0xFF2A2B39),
-        avatar: Icon(icon, color: const Color(0xFFF9C270), size: screenWidth * 0.045),
+        backgroundColor: AppColors.chipBackground,
+        avatar: Icon(icon, color: AppColors.accent, size: screenWidth * 0.045),
         label: Text(
           label,
-          style: TextStyle(color: Colors.white, fontSize: screenWidth * 0.04),
+          style: TextStyle(color: AppColors.textPrimary, fontSize: screenWidth * 0.04),
         ),
       ),
     );
@@ -151,7 +220,7 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
 
   Widget _buildTaskCard(String title, String status, String dueDate, double screenWidth) {
     return Card(
-      color: const Color(0xFF2A2B39),
+      color: AppColors.cardBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(screenWidth * 0.03),
       ),
@@ -164,7 +233,7 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 fontSize: screenWidth * 0.045,
                 fontWeight: FontWeight.bold,
               ),
@@ -176,14 +245,14 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
                 Text(
                   status,
                   style: TextStyle(
-                    color: Color(0xFFF9C270),
+                    color: AppColors.accent,
                     fontSize: screenWidth * 0.035,
                   ),
                 ),
                 Text(
                   dueDate,
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.textMuted,
                     fontSize: screenWidth * 0.035,
                   ),
                 ),
