@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'database_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
 
 class LoginRegisterPage extends StatefulWidget {
   final String role;
@@ -18,36 +19,45 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
 
   final DatabaseHandler dbHandler = DatabaseHandler(); 
 
-  void authenticateUser() async {
-    final usernameOrEmail = usernameController.text.isNotEmpty
-        ? usernameController.text
-        : emailController.text;
-    final password = passwordController.text;
-
-    if (usernameOrEmail.isNotEmpty && password.isNotEmpty) {
-      try {
-        final user = await dbHandler.loginUser(
-          usernameOrEmail: usernameOrEmail,
-          password: password,
-        );
-
-        // Navigate to the appropriate dashboard based on the role
-        Navigator.pushReplacementNamed(
-          context,
-          widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
-      );
-    }
+  
+  Future<void> saveUserIdLocally(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userId', userId);
   }
 
+  
+void authenticateUser() async {
+  final usernameOrEmail = usernameController.text.isNotEmpty
+      ? usernameController.text
+      : emailController.text;
+  final password = passwordController.text;
+
+  if (usernameOrEmail.isNotEmpty && password.isNotEmpty) {
+    try {
+      final user = await dbHandler.loginUser(
+        usernameOrEmail: usernameOrEmail,
+        password: password,
+      );
+
+      // Navigate to the appropriate dashboard and pass the username
+      Navigator.pushReplacementNamed(
+        context,
+        widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
+        arguments: user['username'], // Pass username as an argument
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please fill in all fields")),
+    );
+  }
+}
+
+  
   void registerUser() async {
     final username = usernameController.text;
     final email = emailController.text;
@@ -58,15 +68,26 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         await dbHandler.registerUser(
           username: username,
           email: email,
-          password: password, 
+          password: password,
           role: widget.role, 
         );
 
-        // Navigate to the appropriate dashboard after successful registration
-        Navigator.pushReplacementNamed(
-          context,
-          widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
+        
+        final user = await dbHandler.loginUser(
+          usernameOrEmail: username,
+          password: password,
         );
+
+        if (user != null) {
+          final userId = user['id'];
+          await saveUserIdLocally(userId); 
+
+          
+          Navigator.pushReplacementNamed(
+            context,
+            widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),

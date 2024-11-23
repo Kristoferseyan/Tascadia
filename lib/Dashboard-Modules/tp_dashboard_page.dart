@@ -5,7 +5,9 @@ import '../nav_bar.dart';
 import '../database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
-  const TaskPosterDashboard({super.key});
+  final String username;
+
+  const TaskPosterDashboard({Key? key, required this.username}) : super(key: key);
 
   @override
   _TaskPosterDashboardState createState() => _TaskPosterDashboardState();
@@ -23,13 +25,13 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   @override
   void initState() {
     super.initState();
-    fetchUserDataAndTasks();
+    fetchUserDataAndTasks(widget.username);
   }
 
-  Future<void> fetchUserDataAndTasks() async {
+  Future<void> fetchUserDataAndTasks(String username) async {
     try {
-      final userId = await dbHandler.getCurrentUserId(); // Fetch the logged-in user ID
-      if (userId == null) throw Exception("No user logged in.");
+      final userId = await dbHandler.fetchUserIdByUsername(username);
+      if (userId == null) throw Exception("User not found.");
 
       final userData = await dbHandler.fetchUserById(userId);
       final fetchedTasks = await dbHandler.fetchTasks(userId);
@@ -192,8 +194,8 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
                       final task = tasks[index];
                       return _buildTaskCard(
                         task['title'],
-                        task['status'],
-                        task['due_date'],
+                        task['status'] ?? "Pending",
+                        task['due_date'] ?? "No Date",
                         screenWidth,
                       );
                     },

@@ -8,19 +8,42 @@ class DatabaseHandler {
   factory DatabaseHandler() => _instance;
   DatabaseHandler._internal();
 
+
+
+  Future<String?> fetchUserIdByUsername(String username) async {
+    try {
+      final response = await _client
+          .from('users')
+          .select('id')
+          .eq('username', username)
+          .single();
+
+      if (response == null || !response.containsKey('id')) {
+        throw Exception('User not found.');
+      }
+
+      return response['id'];
+    } catch (e) {
+      throw Exception('Failed to fetch user ID by username: $e');
+    }
+  }
   /// Fetch all tasks for a specific user
   Future<List<dynamic>> fetchTasks(String userId) async {
-    final response = await _client
-        .from('tasks')
-        .select()
-        .eq('posted_by', userId)
-        .order('created_at', ascending: false);
+    try {
+      final response = await _client
+          .from('tasks')
+          .select()
+          .eq('posted_by', userId)
+          .order('created_at', ascending: false);
 
-    if (response == null) {
-      throw Exception('Error fetching tasks.');
+      if (response == null) {
+        throw Exception('Error fetching tasks.');
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to fetch tasks: $e');
     }
-
-    return response;
   }
 
   /// Add a new task
@@ -32,17 +55,21 @@ class DatabaseHandler {
     DateTime? dueDate,
     double? budget,
   }) async {
-    final response = await _client.from('tasks').insert({
-      'title': title,
-      'description': description,
-      'category': category,
-      'due_date': dueDate?.toIso8601String(),
-      'budget': budget,
-      'posted_by': postedBy,
-    });
+    try {
+      final response = await _client.from('tasks').insert({
+        'title': title,
+        'description': description,
+        'category': category,
+        'due_date': dueDate?.toIso8601String(),
+        'budget': budget,
+        'posted_by': postedBy,
+      }).select();
 
-    if (response == null) {
-      throw Exception('Error adding task.');
+      if (response.isEmpty) {
+        throw Exception('Failed to insert the task into the database.');
+      }
+    } catch (e) {
+      throw Exception('Failed to add task: $e');
     }
   }
 
@@ -53,15 +80,19 @@ class DatabaseHandler {
     required String password,
     required String role,
   }) async {
-    final response = await _client.from('users').insert({
-      'username': username,
-      'email': email,
-      'password': password,
-      'role': role,
-    });
+    try {
+      final response = await _client.from('users').insert({
+        'username': username,
+        'email': email,
+        'password': password,
+        'role': role,
+      });
 
-    if (response == 'error') {
-      throw Exception('Error registering user.');
+      if (response == null || response.containsKey('error')) {
+        throw Exception('Error registering user.');
+      }
+    } catch (e) {
+      throw Exception('Failed to register user: $e');
     }
   }
 
@@ -70,37 +101,50 @@ class DatabaseHandler {
     required String usernameOrEmail,
     required String password,
   }) async {
-    final response = await _client
-        .from('users')
-        .select()
-        .or('username.eq.$usernameOrEmail,email.eq.$usernameOrEmail')
-        .eq('password', password) // Hash and compare in production
-        .single();
+    try {
+      final response = await _client
+          .from('users')
+          .select()
+          .or('username.eq.$usernameOrEmail,email.eq.$usernameOrEmail')
+          .eq('password', password) // Hash and compare in production
+          .single();
 
-    if (response == null) {
-      throw Exception('Invalid username/email or password.');
+      if (response == null) {
+        throw Exception('Invalid username/email or password.');
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to login user: $e');
     }
-
-    return response;
   }
 
   /// Fetch user details by ID
   Future<dynamic> fetchUserById(String userId) async {
-    final response = await _client.from('users').select().eq('id', userId).single();
+    try {
+      final response = await _client.from('users').select().eq('id', userId).single();
 
-    if (response == null) {
-      throw Exception('Error fetching user.');
+      if (response == null) {
+        throw Exception('User not found.');
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to fetch user by ID: $e');
     }
-
-    return response;
   }
 
   /// Get logged-in user's ID
   Future<String?> getCurrentUserId() async {
-    final user = _client.auth.currentUser;
-    if (user == null) {
-      return null; // No user logged in
+    try {
+      final session = _client.auth.currentSession;
+      if (session != null && session.user != null) {
+        return session.user?.id;
+      } else {
+        throw Exception('No active session found. User might not be logged in.');
+      }
+    } catch (e) {
+      throw Exception('Failed to retrieve user ID: $e');
     }
-    return user.id;
   }
 }

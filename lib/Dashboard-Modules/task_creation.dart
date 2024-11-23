@@ -9,19 +9,19 @@ class TaskCreationForm extends StatefulWidget {
 
 class _TaskCreationFormState extends State<TaskCreationForm> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseHandler dbHandler = DatabaseHandler(); // Database Handler
+  final DatabaseHandler dbHandler = DatabaseHandler();
 
   String _title = '';
   String _description = '';
   String _category = 'Tech';
   DateTime _dueDate = DateTime.now();
   String _budget = '';
-  String _userId = ''; // Logged-in user ID
+  String? _userId; // Nullable to handle user fetching issues
 
   @override
   void initState() {
     super.initState();
-    _fetchCurrentUser(); // Fetch the user ID when the form is initialized
+    _fetchCurrentUser(); // Fetch the user ID on initialization
   }
 
   Future<void> _fetchCurrentUser() async {
@@ -49,7 +49,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
+            colorScheme: const ColorScheme.dark(
               primary: AppColors.accent,
               onPrimary: AppColors.background,
               surface: AppColors.cardBackground,
@@ -69,23 +69,30 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
   }
 
   Future<void> _saveTask() async {
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not logged in. Unable to save task.")),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       try {
-        // Insert task into database with the logged-in user ID
         await dbHandler.addTask(
           title: _title,
           description: _description,
           category: _category,
-          postedBy: _userId,
+          postedBy: _userId!,
           dueDate: _dueDate,
           budget: double.tryParse(_budget),
         );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Task created successfully!")),
         );
-        Navigator.pop(context); // Close modal after success
+        Navigator.pop(context); // Close the modal after success
       } catch (e) {
+        print("error");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error creating task: $e")),
         );
@@ -111,27 +118,27 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Task Title',
                 labelStyle: TextStyle(color: AppColors.textMuted),
-                focusedBorder: UnderlineInputBorder(
+                focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
-              style: TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: AppColors.textPrimary),
               validator: (value) => value!.isEmpty ? 'Please enter a title' : null,
               onSaved: (value) => _title = value!,
             ),
             const SizedBox(height: 16),
             TextFormField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Description',
                 labelStyle: TextStyle(color: AppColors.textMuted),
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
-              style: TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: AppColors.textPrimary),
               maxLines: 3,
               validator: (value) => value!.isEmpty ? 'Please enter a description' : null,
               onSaved: (value) => _description = value!,
@@ -144,7 +151,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                         value: category,
                         child: Text(
                           category,
-                          style: TextStyle(color: AppColors.textPrimary),
+                          style: const TextStyle(color: AppColors.textPrimary),
                         ),
                       ))
                   .toList(),
@@ -152,19 +159,19 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                 _category = value!;
               }),
               dropdownColor: AppColors.background,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Category',
                 labelStyle: TextStyle(color: AppColors.textMuted),
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
-              style: TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: AppColors.textPrimary),
             ),
             const SizedBox(height: 16),
             TextFormField(
               readOnly: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Due Date',
                 labelStyle: TextStyle(color: AppColors.textMuted),
                 suffixIcon: Icon(Icons.calendar_today, color: AppColors.textMuted),
@@ -172,21 +179,21 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
-              style: TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: AppColors.textPrimary),
               onTap: () => _selectDate(context),
               controller: TextEditingController(
                   text: '${_dueDate.toLocal()}'.split(' ')[0]),
             ),
             const SizedBox(height: 16),
             TextFormField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Budget',
                 labelStyle: TextStyle(color: AppColors.textMuted),
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
-              style: TextStyle(color: AppColors.textPrimary),
+              style: const TextStyle(color: AppColors.textPrimary),
               keyboardType: TextInputType.number,
               validator: (value) => value!.isEmpty ? 'Please enter a budget' : null,
               onSaved: (value) => _budget = value!,
@@ -198,6 +205,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                 onPressed: _saveTask,
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
                 child: const Text(
+
                   'Save Task',
                   style: TextStyle(color: AppColors.background),
                 ),
