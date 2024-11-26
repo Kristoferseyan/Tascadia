@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'database_handler.dart';
+import 'utils/database_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 
 class LoginRegisterPage extends StatefulWidget {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tascadia_prototype/Dashboard-Modules/task_creation.dart';
-import '../colors.dart';
-import '../nav_bar.dart';
-import '../database_handler.dart';
+import 'package:tascadia_prototype/Dashboard-Modules/task_list.dart';
+import '../utils/colors.dart';
+import '../utils/nav_bar.dart';
+import '../utils/database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
   final String username;
@@ -14,13 +15,14 @@ class TaskPosterDashboard extends StatefulWidget {
 }
 
 class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
+  final DatabaseHandler dbHandler = DatabaseHandler();
   int _selectedIndex = 1;
   final PageController _pageController = PageController(initialPage: 1);
-  final DatabaseHandler dbHandler = DatabaseHandler();
 
   List<dynamic> tasks = [];
   String userName = 'User';
   bool isLoading = true;
+  String userId = '';
 
   @override
   void initState() {
@@ -28,30 +30,34 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
     fetchUserDataAndTasks(widget.username);
   }
 
-Future<void> fetchUserDataAndTasks(String username) async {
-  try {
-    print("Fetching user ID for username: $username"); 
+  Future<void> fetchUserDataAndTasks(String username) async {
+    try {
+      print("Fetching user ID for username: $username");
 
-    final userId = await dbHandler.fetchUserIdByUsername(username);
-    if (userId == null) throw Exception("User not found.");
-    final userData = await dbHandler.fetchUserById(userId);
-    final fetchedTasks = await dbHandler.fetchTasks(userId);
+      final fetchedUserId = await dbHandler.fetchUserIdByUsername(username);
+      if (fetchedUserId == null) throw Exception("User not found.");
 
-    setState(() {
-      userName = userData['username'] ?? 'User';
-      tasks = fetchedTasks;
-      isLoading = false;
-    });
-  } catch (e) {
-    setState(() {
-      isLoading = false;
-    });
-    print("Error loading data: $e"); 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error loading data: $e')),
-    );
+      final userData = await dbHandler.fetchUserById(fetchedUserId);
+      final fetchedTasks = await dbHandler.fetchTasks(fetchedUserId);
+
+      setState(() {
+        userId = fetchedUserId; 
+        userName = userData['username'] ?? 'User';
+        tasks = fetchedTasks; 
+        isLoading = false;
+      });
+
+      print("Tasks fetched: $tasks");
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print("Error fetching user data or tasks: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading data: $e')),
+      );
+    }
   }
-}
 
   void _onItemTapped(int index) {
     setState(() {
@@ -61,6 +67,13 @@ Future<void> fetchUserDataAndTasks(String username) async {
   }
 
   void _showTaskCreationModal() {
+    if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: User ID not available.')),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -75,7 +88,7 @@ Future<void> fetchUserDataAndTasks(String username) async {
           top: 16.0,
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: TaskCreationForm(),
+        child: TaskCreationForm(userId: userId),
       ),
     );
   }
@@ -184,25 +197,9 @@ Future<void> fetchUserDataAndTasks(String username) async {
             ],
           ),
           SizedBox(height: screenHeight * 0.015),
-          isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
-                )
-              : Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) {
-                      final task = tasks[index];
-                      return _buildTaskCard(
-                        task['title'],
-                        task['status'] ?? "Pending",
-                        task['due_date'] ?? "No Date",
-                        screenWidth,
-                      );
-                    },
-                  ),
-                ),
+          Expanded(
+            child: TaskList(tasks: tasks, isLoading: isLoading),
+          ),
         ],
       ),
     );
@@ -217,52 +214,6 @@ Future<void> fetchUserDataAndTasks(String username) async {
         label: Text(
           label,
           style: TextStyle(color: AppColors.textPrimary, fontSize: screenWidth * 0.04),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTaskCard(String title, String status, String dueDate, double screenWidth) {
-    return Card(
-      color: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(screenWidth * 0.03),
-      ),
-      margin: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: screenWidth * 0.04, horizontal: screenWidth * 0.045),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: screenWidth * 0.045,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  status,
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: screenWidth * 0.035,
-                  ),
-                ),
-                Text(
-                  dueDate,
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: screenWidth * 0.035,
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );

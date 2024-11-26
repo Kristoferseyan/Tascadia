@@ -28,50 +28,55 @@ class DatabaseHandler {
     }
   }
   /// Fetch all tasks for a specific user
-  Future<List<dynamic>> fetchTasks(String userId) async {
-    try {
-      final response = await _client
-          .from('tasks')
-          .select()
-          .eq('posted_by', userId)
-          .order('created_at', ascending: false);
+Future<List<dynamic>> fetchTasks(String userId) async {
+  try {
+    final response = await _client
+        .from('tasks')
+        .select('*')
+        .eq('posted_by', userId)
+        .order('created_at', ascending: false);
 
-      if (response == null) {
-        throw Exception('Error fetching tasks.');
-      }
-
-      return response;
-    } catch (e) {
-      throw Exception('Failed to fetch tasks: $e');
+    if (response == null || response.isEmpty) {
+      return [];
     }
+
+    return response;
+  } catch (e) {
+    throw Exception('Failed to fetch tasks: $e');
   }
+}
+
 
   /// Add a new task
-  Future<void> addTask({
-    required String title,
-    required String description,
-    required String category,
-    required String postedBy,
-    DateTime? dueDate,
-    double? budget,
-  }) async {
-    try {
-      final response = await _client.from('tasks').insert({
-        'title': title,
-        'description': description,
-        'category': category,
-        'due_date': dueDate?.toIso8601String(),
-        'budget': budget,
-        'posted_by': postedBy,
-      }).select();
+Future<void> addTask({
+  required String title,
+  required String description,
+  required String category,
+  required String postedBy, // UUID from `users` table
+  DateTime? dueDate,
+  double? budget,
+}) async {
+  try {
+    final response = await _client.from('tasks').insert({
+      'title': title,
+      'description': description,
+      'category': category,
+      'due_date': dueDate?.toIso8601String(),
+      'budget': budget,
+      'posted_by': postedBy,
+    }).select();
 
-      if (response.isEmpty) {
-        throw Exception('Failed to insert the task into the database.');
-      }
-    } catch (e) {
-      throw Exception('Failed to add task: $e');
+    if (response == null || response.isEmpty) {
+      throw Exception('Failed to insert the task into the database.');
     }
+
+    print("Task inserted successfully: $response");
+  } catch (e) {
+    print("Error adding task: $e");
+    throw Exception('Failed to add task: $e');
   }
+}
+
 
   /// Register a new user
   Future<void> registerUser({

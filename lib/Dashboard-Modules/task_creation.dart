@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:tascadia_prototype/colors.dart';
-import 'package:tascadia_prototype/database_handler.dart';
+import 'package:tascadia_prototype/utils/colors.dart';
+import 'package:tascadia_prototype/utils/database_handler.dart';
 
 class TaskCreationForm extends StatefulWidget {
+  final String userId; 
+
+  const TaskCreationForm({Key? key, required this.userId}) : super(key: key);
+
   @override
   _TaskCreationFormState createState() => _TaskCreationFormState();
 }
@@ -16,29 +20,6 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
   String _category = 'Tech';
   DateTime _dueDate = DateTime.now();
   String _budget = '';
-  String? _userId; // Nullable to handle user fetching issues
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCurrentUser(); // Fetch the user ID on initialization
-  }
-
-  Future<void> _fetchCurrentUser() async {
-    try {
-      final userId = await dbHandler.getCurrentUserId();
-      if (userId == null) {
-        throw Exception('User not logged in.');
-      }
-      setState(() {
-        _userId = userId;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error retrieving user ID: $e')),
-      );
-    }
-  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -68,37 +49,36 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
     }
   }
 
-  Future<void> _saveTask() async {
-    if (_userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User not logged in. Unable to save task.")),
+Future<void> _saveTask() async {
+  if (_formKey.currentState!.validate()) {
+    print("Validation passed");
+    _formKey.currentState!.save();
+    try {
+      
+      await dbHandler.addTask(
+        title: _title,
+        description: _description,
+        category: _category,
+        postedBy: widget.userId, 
+        dueDate: _dueDate,
+        budget: double.tryParse(_budget),
       );
-      return;
+      print("Task saved successfully");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Task created successfully!")),
+      );
+      Navigator.pop(context); 
+    } catch (e) {
+      print("Error saving task: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error creating task: $e")),
+      );
     }
-
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      try {
-        await dbHandler.addTask(
-          title: _title,
-          description: _description,
-          category: _category,
-          postedBy: _userId!,
-          dueDate: _dueDate,
-          budget: double.tryParse(_budget),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Task created successfully!")),
-        );
-        Navigator.pop(context); // Close the modal after success
-      } catch (e) {
-        print("error");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error creating task: $e")),
-        );
-      }
-    }
+  } else {
+    print("Validation failed");
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +101,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
               decoration: const InputDecoration(
                 labelText: 'Task Title',
                 labelStyle: TextStyle(color: AppColors.textMuted),
-                focusedBorder: const UnderlineInputBorder(
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),
                 ),
               ),
@@ -205,7 +185,6 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                 onPressed: _saveTask,
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
                 child: const Text(
-
                   'Save Task',
                   style: TextStyle(color: AppColors.background),
                 ),

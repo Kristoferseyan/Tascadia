@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tascadia_prototype/logreg.dart';
 import 'welcome_page.dart';
 import 'Dashboard-Modules/tp_dashboard_page.dart';
-import 'tp_settings_page.dart';
+import 'Settings-Modules/tp_settings_page.dart';
 import 'tp_tasks_page.dart';
 
 Future<void> main() async {
