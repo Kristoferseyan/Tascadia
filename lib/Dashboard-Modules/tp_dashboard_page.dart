@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:tascadia_prototype/Dashboard-Modules/task_creation.dart';
 import 'package:tascadia_prototype/Dashboard-Modules/task_list.dart';
 import '../utils/colors.dart';
-import '../utils/nav_bar.dart';
 import '../utils/database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
@@ -16,8 +15,6 @@ class TaskPosterDashboard extends StatefulWidget {
 
 class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   final DatabaseHandler dbHandler = DatabaseHandler();
-  int _selectedIndex = 1;
-  final PageController _pageController = PageController(initialPage: 1);
 
   List<dynamic> tasks = [];
   String userName = 'User';
@@ -41,9 +38,9 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
       final fetchedTasks = await dbHandler.fetchTasks(fetchedUserId);
 
       setState(() {
-        userId = fetchedUserId; 
+        userId = fetchedUserId;
         userName = userData['username'] ?? 'User';
-        tasks = fetchedTasks; 
+        tasks = fetchedTasks;
         isLoading = false;
       });
 
@@ -57,13 +54,6 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
         SnackBar(content: Text('Error loading data: $e')),
       );
     }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    _pageController.jumpToPage(index);
   }
 
   void _showTaskCreationModal() {
@@ -100,107 +90,83 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        children: [
-          const Center(
-            child: Text("Tasks Page", style: TextStyle(color: AppColors.textPrimary)),
-          ),
-          _buildDashboardContent(screenWidth, screenHeight),
-          const Center(
-            child: Text("Settings Page", style: TextStyle(color: AppColors.textPrimary)),
-          ),
-        ],
-      ),
-      bottomNavigationBar: CustomNavBar(
-        selectedIndex: _selectedIndex,
-        onTabChange: _onItemTapped,
-      ),
-    );
-  }
-
-  Widget _buildDashboardContent(double screenWidth, double screenHeight) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.04,
-        vertical: screenHeight * 0.06,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: screenWidth * 0.06,
-                backgroundColor: AppColors.accent,
-                child: Icon(Icons.person, color: AppColors.textPrimary, size: screenWidth * 0.06),
-              ),
-              SizedBox(width: screenWidth * 0.03),
-              Text(
-                "Welcome, $userName!",
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: Icon(Icons.notifications, color: AppColors.textPrimary, size: screenWidth * 0.07),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          SizedBox(height: screenHeight * 0.03),
-          Text(
-            "Categories",
-            style: TextStyle(
-              color: AppColors.accent,
-              fontSize: screenWidth * 0.045,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: screenHeight * 0.01),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+      body: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.04,
+          vertical: screenHeight * 0.06,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                _buildCategoryChip("Tech", Icons.computer, screenWidth),
-                _buildCategoryChip("Manual", Icons.build, screenWidth),
-                _buildCategoryChip("Delivery", Icons.local_shipping, screenWidth),
-                _buildCategoryChip("Cleaning", Icons.cleaning_services, screenWidth),
-                _buildCategoryChip("Other", Icons.more_horiz, screenWidth),
+                CircleAvatar(
+                  radius: screenWidth * 0.06,
+                  backgroundColor: AppColors.accent,
+                  child: Icon(Icons.person, color: AppColors.textPrimary, size: screenWidth * 0.06),
+                ),
+                SizedBox(width: screenWidth * 0.03),
+                Text(
+                  "Welcome, $userName!",
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: screenWidth * 0.05,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: Icon(Icons.notifications, color: AppColors.textPrimary, size: screenWidth * 0.07),
+                  onPressed: () {},
+                ),
               ],
             ),
-          ),
-          SizedBox(height: screenHeight * 0.02),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Your Posted Tasks",
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.bold,
+            SizedBox(height: screenHeight * 0.03),
+            Text(
+              "Categories",
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: screenWidth * 0.045,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.01),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildCategoryChip("Tech", Icons.computer, screenWidth),
+                  _buildCategoryChip("Manual", Icons.build, screenWidth),
+                  _buildCategoryChip("Delivery", Icons.local_shipping, screenWidth),
+                  _buildCategoryChip("Cleaning", Icons.cleaning_services, screenWidth),
+                  _buildCategoryChip("Other", Icons.more_horiz, screenWidth),
+                ],
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Your Posted Tasks",
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: screenWidth * 0.05,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: Icon(Icons.add_circle, color: AppColors.accent, size: screenWidth * 0.07),
-                onPressed: _showTaskCreationModal,
-              ),
-            ],
-          ),
-          SizedBox(height: screenHeight * 0.015),
-          Expanded(
-            child: TaskList(tasks: tasks, isLoading: isLoading),
-          ),
-        ],
+                IconButton(
+                  icon: Icon(Icons.add_circle, color: AppColors.accent, size: screenWidth * 0.07),
+                  onPressed: _showTaskCreationModal,
+                ),
+              ],
+            ),
+            SizedBox(height: screenHeight * 0.015),
+            Expanded(
+              child: TaskList(tasks: tasks, isLoading: isLoading),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -217,11 +183,5 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 }

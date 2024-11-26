@@ -1,11 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:tascadia_prototype/Dashboard-Modules/tp_dashboard_page.dart';
+import 'package:tascadia_prototype/Settings-Modules/tp_settings_page.dart';
+import 'package:tascadia_prototype/tp_store_page.dart';
+
+class HomePage extends StatefulWidget {
+  final String username; // Add username as a parameter
+
+  const HomePage({Key? key, required this.username}) : super(key: key);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 1; // Default to Dashboard page
+
+  late final List<Widget> _pages; // Declare pages here
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the pages with the username
+    _pages = [
+      StorePage(), // Replace with your actual Store page widget
+      TaskPosterDashboard(username: widget.username), // Pass the username here
+      SettingsPage(), // Replace with your actual Settings page widget
+    ];
+  }
+
+  void _onTabChange(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex], // Display the selected page
+      bottomNavigationBar: CustomNavBar(
+        selectedIndex: _selectedIndex,
+        onTabChange: _onTabChange,
+      ),
+    );
+  }
+}
 
 class CustomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTabChange;
 
-  CustomNavBar({required this.selectedIndex, required this.onTabChange});
+  const CustomNavBar({required this.selectedIndex, required this.onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +67,8 @@ class CustomNavBar extends StatelessWidget {
         onTabChange: onTabChange,
         tabs: const [
           GButton(
-            icon: Icons.task_alt,
-            text: 'Tasks',
+            icon: Icons.store,
+            text: 'Store',
           ),
           GButton(
             icon: Icons.dashboard,
