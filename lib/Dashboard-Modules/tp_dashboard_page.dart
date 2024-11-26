@@ -28,28 +28,30 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
     fetchUserDataAndTasks(widget.username);
   }
 
-  Future<void> fetchUserDataAndTasks(String username) async {
-    try {
-      final userId = await dbHandler.fetchUserIdByUsername(username);
-      if (userId == null) throw Exception("User not found.");
+Future<void> fetchUserDataAndTasks(String username) async {
+  try {
+    print("Fetching user ID for username: $username"); 
 
-      final userData = await dbHandler.fetchUserById(userId);
-      final fetchedTasks = await dbHandler.fetchTasks(userId);
+    final userId = await dbHandler.fetchUserIdByUsername(username);
+    if (userId == null) throw Exception("User not found.");
+    final userData = await dbHandler.fetchUserById(userId);
+    final fetchedTasks = await dbHandler.fetchTasks(userId);
 
-      setState(() {
-        userName = userData['username'] ?? 'User';
-        tasks = fetchedTasks;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading data: $e')),
-      );
-    }
+    setState(() {
+      userName = userData['username'] ?? 'User';
+      tasks = fetchedTasks;
+      isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    print("Error loading data: $e"); 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error loading data: $e')),
+    );
   }
+}
 
   void _onItemTapped(int index) {
     setState(() {
