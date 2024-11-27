@@ -32,14 +32,12 @@ Future<List<dynamic>> fetchTasks(String userId) async {
   try {
     final response = await _client
         .from('tasks')
-        .select('*')
-        .eq('posted_by', userId)
+        .select('title, description, budget, category, due_date, status, posted_by, created_at')
         .order('created_at', ascending: false);
 
     if (response == null || response.isEmpty) {
       return [];
     }
-
     return response;
   } catch (e) {
     throw Exception('Failed to fetch tasks: $e');

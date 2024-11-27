@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tascadia_prototype/Dashboard-Modules/task_creation.dart';
-import 'package:tascadia_prototype/Dashboard-Modules/task_list.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/task_creation.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/task_list.dart';
 import '../utils/colors.dart';
 import '../utils/database_handler.dart';
 

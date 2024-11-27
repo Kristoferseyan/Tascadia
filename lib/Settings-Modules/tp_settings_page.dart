@@ -17,7 +17,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF1E1F2B),
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove the back button
+        automaticallyImplyLeading: false, 
         title: const Text(
           "Settings",
           style: TextStyle(color: Colors.white),

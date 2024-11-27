@@ -39,11 +39,11 @@ void authenticateUser() async {
         password: password,
       );
 
-      // Navigate to the appropriate dashboard and pass the username
+      
       Navigator.pushReplacementNamed(
         context,
         widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
-        arguments: user['username'], // Pass username as an argument
+        arguments: user['username'], 
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -58,47 +58,48 @@ void authenticateUser() async {
 }
 
   
-  void registerUser() async {
-    final username = usernameController.text;
-    final email = emailController.text;
-    final password = passwordController.text;
+void registerUser() async {
+  final username = usernameController.text.trim();
+  final email = emailController.text.trim();
+  final password = passwordController.text.trim();
 
-    if (username.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
-      try {
-        await dbHandler.registerUser(
-          username: username,
-          email: email,
-          password: password,
-          role: widget.role, 
+  if (username.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+    try {
+      await dbHandler.registerUser(
+        username: username,
+        email: email,
+        password: password,
+        role: widget.role,
+      );
+
+      final user = await dbHandler.loginUser(
+        usernameOrEmail: username,
+        password: password,
+      );
+
+      if (user != null && user['username'] != null) {
+        await saveUserIdLocally(user['id']);
+
+        Navigator.pushReplacementNamed(
+          context,
+          widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
+          arguments: user['username'], 
         );
-
-        
-        final user = await dbHandler.loginUser(
-          usernameOrEmail: username,
-          password: password,
-        );
-
-        if (user != null) {
-          final userId = user['id'];
-          await saveUserIdLocally(userId); 
-
-          
-          Navigator.pushReplacementNamed(
-            context,
-            widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+      } else {
+        throw Exception('User data is incomplete.');
       }
-    } else {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please fill in all fields")),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
