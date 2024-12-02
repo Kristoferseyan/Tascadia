@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_dashboard_page.dart';
-import 'package:tascadia_prototype/Settings-Modules/tp_settings_page.dart';
-import 'package:tascadia_prototype/tp_store_page.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_settings_page.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_store_page.dart';
 
 class HomePage extends StatefulWidget {
   final String id; 

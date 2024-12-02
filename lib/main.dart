@@ -4,10 +4,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_dashboard_page.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_home_page.dart';
 import 'package:tascadia_prototype/logreg.dart';
-import 'package:tascadia_prototype/tp_store_page.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_store_page.dart';
 import 'package:tascadia_prototype/utils/nav_bar.dart';
 import 'welcome_page.dart';
-import 'Settings-Modules/tp_settings_page.dart';
+import 'TP-Dashboard-Modules/tp_settings_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

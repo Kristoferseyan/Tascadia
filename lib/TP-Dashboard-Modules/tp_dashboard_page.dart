@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/task_creation.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/task_list.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_task_application_review_page.dart';
 import '../utils/colors.dart';
 import '../utils/database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
-  final String id; // Changed to `id`
+  final String id; 
 
   const TaskPosterDashboard({Key? key, required this.id}) : super(key: key);
 
@@ -23,7 +24,21 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   @override
   void initState() {
     super.initState();
-    fetchUserDataAndTasks(widget.id); // Use `id` directly
+    fetchUserDataAndTasks(widget.id); 
+    fetchPendingApplications(widget.id);
+  }
+
+  List<dynamic> pendingApplications = []; 
+
+  Future<void> fetchPendingApplications(String userId) async {
+    try {
+      final applications = await dbHandler.fetchPendingApplicationsForPoster(userId);
+      setState(() {
+        pendingApplications = applications;
+      });
+    } catch (e) {
+      print("Error fetching pending applications: $e");
+    }
   }
 
   Future<void> fetchUserDataAndTasks(String userId) async {
@@ -78,6 +93,84 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
     );
   }
 
+void _reviewApplication(Map<String, dynamic> application) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => TaskApplicationReviewPage(application: application),
+    ),
+  );
+}
+
+
+void _showPendingApplicationsModal(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.background,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+    ),
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Pending Applications",
+              style: const TextStyle(
+                color: AppColors.accent,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            pendingApplications.isNotEmpty
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: pendingApplications.length,
+                    itemBuilder: (context, index) {
+                      final application = pendingApplications[index];
+                      return ListTile(
+                        title: Text(
+                          application['task_title'], 
+                          style: const TextStyle(color: AppColors.textPrimary),
+                        ),
+                        subtitle: Text(
+                          "Task Doer: ${application['task_doer_name']}", 
+                          style: const TextStyle(color: AppColors.textSecondary),
+                        ),
+                        trailing: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context); 
+                            _reviewApplication(application); 
+                          },
+                          child: const Text(
+                            'Review',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      "No pending applications.",
+                      style: TextStyle(color: AppColors.textMuted),
+                    ),
+                  ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -111,9 +204,37 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.notifications, color: AppColors.textPrimary, size: screenWidth * 0.07),
-                  onPressed: () {},
+                  icon: Stack(
+                    children: [
+                      Icon(Icons.notifications, color: AppColors.textPrimary, size: screenWidth * 0.07),
+                      if (pendingApplications.isNotEmpty) 
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '${pendingApplications.length}', 
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  onPressed: () => _showPendingApplicationsModal(context),
                 ),
+
               ],
             ),
             SizedBox(height: screenHeight * 0.03),

@@ -59,11 +59,11 @@ Future<void> addTask({
       'title': title,
       'description': description,
       'category': category,
-      'due_date': dueDate?.toIso8601String(),
+      'due_date': dueDate?.toIso8601String(), 
       'budget': budget,
       'posted_by': postedBy,
       'address': address, 
-      'status': 'Pending', 
+      'status': 'Available', 
     }).select();
 
     if (response == null || response.isEmpty) {
@@ -92,6 +92,98 @@ Future<void> applyForTask({
   print("Application submitted successfully for task ID: $taskId");
 }
 
+
+Future<List<dynamic>> fetchPendingApplicationsForPoster(String posterId) async {
+  
+  final taskApplications = await _client
+      .from('task_applications')
+      .select('id, task_id, task_doer_id') 
+      .eq('status', 'Pending');
+
+  
+  final taskApplicationsWithAlias = taskApplications.map((application) {
+    return {
+      'application_id': application['id'], 
+      'task_id': application['task_id'],
+      'task_doer_id': application['task_doer_id'],
+    };
+  }).toList();
+
+  
+  final tasks = await _client
+      .from('tasks')
+      .select('id, title, posted_by')
+      .eq('posted_by', posterId);
+
+  
+  final users = await _client
+      .from('users')
+      .select('id, username');
+
+  
+  final applications = taskApplicationsWithAlias.map((application) {
+    final task = tasks.firstWhere((t) => t['id'] == application['task_id'], orElse: () => {});
+    final user = users.firstWhere((u) => u['id'] == application['task_doer_id'], orElse: () => {});
+
+    if (task != null && user != null) {
+      return {
+        'application_id': application['application_id'], 
+        'task_id': application['task_id'],
+        'task_title': task['title'],
+        'task_doer_name': user['username'],
+        'task_doer_id': application['task_doer_id'],
+      };
+    }
+    return null;
+  }).where((app) => app != null).toList();
+
+  return applications;
+}
+
+
+
+Future<void> sendNotificationToTaskDoer({
+  required String taskDoerId,
+  required String message,
+}) async {
+  await _client.from('notifications').insert({
+    'user_id': taskDoerId,
+    'message': message,
+    'created_at': DateTime.now().toIso8601String(),
+  });
+}
+
+
+Future<void> deleteApplication({
+  required String applicationId,
+}) async {
+  await _client
+      .from('task_applications')
+      .delete()
+      .eq('id', applicationId);
+}
+
+
+Future<void> updateTaskStatus({
+  required String taskId,
+  required String status,
+}) async {
+  await _client
+      .from('tasks')
+      .update({'status': status})
+      .eq('id', taskId);
+}
+
+
+Future<void> updateApplicationStatus({
+  required String applicationId,
+  required String status,
+}) async {
+  await _client
+      .from('task_applications')
+      .update({'status': status})
+      .eq('id', applicationId);
+}
 
 
 
