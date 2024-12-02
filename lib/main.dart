@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_dashboard_page.dart';
 import 'package:tascadia_prototype/logreg.dart';
 import 'package:tascadia_prototype/tp_store_page.dart';
@@ -10,10 +11,15 @@ import 'Settings-Modules/tp_settings_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: "assets/auth.env");
+
+  final supabaseUrl = dotenv.env['SUPABASE_URL']!;
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']!;
+
   try {
     await Supabase.initialize(
-      url: 'https://yezqgjvvazinfttlmmks.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllenFnanZ2YXppbmZ0dGxtbWtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI3MDE4NDYsImV4cCI6MjA0ODI3Nzg0Nn0.ZNaznwb1J5kN9_jNJzZ5h89Mfrl1nVocds6jGIxA8P4',
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
     );
   } catch (e) {
     debugPrint("Error initializing Supabase: $e");
@@ -36,7 +42,6 @@ class TascadiaApp extends StatelessWidget {
       ),
       initialRoute: '/welcomepage',
       routes: {
-
         '/welcomepage': (context) => WelcomePage(),
         '/store': (context) => const StorePage(),
         '/settings': (context) => SettingsPage(),
@@ -45,7 +50,6 @@ class TascadiaApp extends StatelessWidget {
         ),
       },
       onGenerateRoute: (settings) {
-
         if (settings.name == '/dashboard') {
           final username = settings.arguments as String?;
           if (username != null) {

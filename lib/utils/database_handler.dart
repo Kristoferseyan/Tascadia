@@ -50,7 +50,7 @@ Future<void> addTask({
   required String title,
   required String description,
   required String category,
-  required String postedBy, // UUID from `users` table
+  required String postedBy,
   DateTime? dueDate,
   double? budget,
 }) async {
@@ -62,6 +62,7 @@ Future<void> addTask({
       'due_date': dueDate?.toIso8601String(),
       'budget': budget,
       'posted_by': postedBy,
+      'status': 'Pending', 
     }).select();
 
     if (response == null || response.isEmpty) {
