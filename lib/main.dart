@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_dashboard_page.dart';
+import 'package:tascadia_prototype/TD-Dashboard-Modules/td_home_page.dart';
 import 'package:tascadia_prototype/logreg.dart';
 import 'package:tascadia_prototype/tp_store_page.dart';
 import 'package:tascadia_prototype/utils/nav_bar.dart';
@@ -45,6 +46,9 @@ class TascadiaApp extends StatelessWidget {
         '/welcomepage': (context) => WelcomePage(),
         '/store': (context) => const StorePage(),
         '/settings': (context) => SettingsPage(),
+        '/taskdoer_home': (context) => TaskDoerHomePage(
+          username: ModalRoute.of(context)!.settings.arguments as String,
+        ),
         '/taskdoer_dashboard': (context) => TaskDoerDashboardPage(
           username: ModalRoute.of(context)!.settings.arguments as String,
         ),

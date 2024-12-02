@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tascadia_prototype/TD-Dashboard-Modules/td_home_page.dart';
+import 'package:tascadia_prototype/utils/nav_bar.dart';
 import 'utils/database_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 
@@ -39,11 +41,17 @@ void authenticateUser() async {
         password: password,
       );
 
-      
-      Navigator.pushReplacementNamed(
+      // Save user ID locally
+      await saveUserIdLocally(user['id']);
+
+      // Redirect to the appropriate home page
+      Navigator.pushReplacement(
         context,
-        widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
-        arguments: user['username'], 
+        MaterialPageRoute(
+          builder: (context) => widget.role == 'TaskPoster'
+              ? HomePage(username: user['username']) // Task Poster Home Page
+              : TaskDoerHomePage(username: user['username']), // Task Doer Home Page
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +65,6 @@ void authenticateUser() async {
   }
 }
 
-  
 void registerUser() async {
   final username = usernameController.text.trim();
   final email = emailController.text.trim();
@@ -80,10 +87,14 @@ void registerUser() async {
       if (user != null && user['username'] != null) {
         await saveUserIdLocally(user['id']);
 
-        Navigator.pushReplacementNamed(
+        // Redirect to the appropriate home page
+        Navigator.pushReplacement(
           context,
-          widget.role == 'TaskPoster' ? '/dashboard' : '/taskdoer_dashboard',
-          arguments: user['username'], 
+          MaterialPageRoute(
+            builder: (context) => widget.role == 'TaskPoster'
+                ? HomePage(username: user['username']) // Task Poster Home Page
+                : TaskDoerHomePage(username: user['username']), // Task Doer Home Page
+          ),
         );
       } else {
         throw Exception('User data is incomplete.');
@@ -99,6 +110,7 @@ void registerUser() async {
     );
   }
 }
+
 
 
   @override

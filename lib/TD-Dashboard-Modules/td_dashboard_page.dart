@@ -39,7 +39,6 @@ class _TaskDoerDashboardPageState extends State<TaskDoerDashboardPage> {
           'due_date': task['due_date'] != null
               ? DateTime.parse(task['due_date']).toString()
               : 'No due date',
-          'status': task['status'],
           'address': task['address'] ?? 'No address specified',
         };
       }).toList();
@@ -172,22 +171,7 @@ void _showTaskDetailsBottomSheet(BuildContext context, Map<String, dynamic> task
               task['due_date'],
               style: const TextStyle(color: AppColors.textMuted),
             ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Status:',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 5),
-            Text(
-              task['status'],
-              style: TextStyle(
-                color: task['status'] == 'Completed' ? Colors.green : AppColors.textSecondary,
-              ),
-            ),
             const SizedBox(height: 20),
 
             Align(

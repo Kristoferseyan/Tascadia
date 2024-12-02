@@ -32,7 +32,7 @@ Future<List<dynamic>> fetchTasks(String userId) async {
   try {
     final response = await _client
         .from('tasks')
-        .select('title, description, budget, category, due_date, status, posted_by, created_at')
+        .select('title, description, budget, category, due_date, status, posted_by, created_at, address')
         .order('created_at', ascending: false);
 
     if (response == null || response.isEmpty) {
@@ -51,8 +51,9 @@ Future<void> addTask({
   required String description,
   required String category,
   required String postedBy,
+  required String address, // Added address as a required parameter
   DateTime? dueDate,
-  double? budget, required String address,
+  double? budget,
 }) async {
   try {
     final response = await _client.from('tasks').insert({
@@ -62,7 +63,8 @@ Future<void> addTask({
       'due_date': dueDate?.toIso8601String(),
       'budget': budget,
       'posted_by': postedBy,
-      'status': 'Pending', 
+      'address': address, // Added address to the database payload
+      'status': 'Pending', // Default status
     }).select();
 
     if (response == null || response.isEmpty) {
@@ -75,6 +77,7 @@ Future<void> addTask({
     throw Exception('Failed to add task: $e');
   }
 }
+
 
 
   /// Register a new user
