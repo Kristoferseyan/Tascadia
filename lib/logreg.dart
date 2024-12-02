@@ -39,15 +39,15 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
           password: password,
         );
 
-        await saveUserIdLocally(user['id']); // Save user ID locally
+        await saveUserIdLocally(user['id']); 
 
-        // Navigate to the appropriate home page
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => widget.role == 'TaskPoster'
-                ? HomePage(id: user['id']) // Pass ID
-                : TaskDoerHomePage(id: user['id']), // Pass ID
+                ? HomePage(id: user['id']) 
+                : TaskDoerHomePage(id: user['id']), 
           ),
         );
       } catch (e) {
@@ -82,15 +82,15 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
         );
 
         if (user != null && user['id'] != null) {
-          await saveUserIdLocally(user['id']); // Save user ID locally
+          await saveUserIdLocally(user['id']); 
 
-          // Navigate to the appropriate home page
+          
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => widget.role == 'TaskPoster'
-                  ? HomePage(id: user['id']) // Pass ID
-                  : TaskDoerHomePage(id: user['id']), // Pass ID
+                  ? HomePage(id: user['id']) 
+                  : TaskDoerHomePage(id: user['id']), 
             ),
           );
         } else {

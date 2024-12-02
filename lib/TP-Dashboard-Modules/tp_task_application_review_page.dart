@@ -20,34 +20,34 @@ void _approveApplication(BuildContext context) async {
   final taskDoerId = application['task_doer_id'];
   final taskTitle = application['task_title'] ?? "Unknown Task";
 
-  // Proceed only if all necessary IDs are present
+  
   if (applicationId != null && taskId != null && taskDoerId != null) {
-    // Update application status to Approved
+    
     await dbHandler.updateApplicationStatus(
       applicationId: applicationId,
       status: 'Approved',
     );
 
-    // Update task status to In Progress
+    
     await dbHandler.updateTaskStatus(
       taskId: taskId,
       status: 'In Progress',
     );
 
-    // Notify Task Doer
+    
     await dbHandler.sendNotificationToTaskDoer(
       taskDoerId: taskDoerId,
       message: "Your application for '$taskTitle' has been approved!",
     );
 
-    // Display success message and close the page
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Application approved successfully!')),
     );
 
     Navigator.pop(context);
   } else {
-    // Log missing information for debugging
+    
     print("Missing required IDs: applicationId: $applicationId, taskId: $taskId, taskDoerId: $taskDoerId");
   }
 }
@@ -63,13 +63,13 @@ void _approveApplication(BuildContext context) async {
         throw Exception("Invalid application data. Missing required IDs.");
       }
 
-      // Notify Task Doer about rejection
+      
       await dbHandler.sendNotificationToTaskDoer(
         taskDoerId: taskDoerId,
         message: "Your application for '$taskTitle' has been rejected.",
       );
 
-      // Delete the application
+      
       await dbHandler.deleteApplication(
         applicationId: applicationId,
       );
