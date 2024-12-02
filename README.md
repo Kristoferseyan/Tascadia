@@ -40,9 +40,9 @@ Tascadia is currently in the development phase. Features and functionality may c
 
 ---
 
-## **License**
+## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the **All Rights Reserved** license. All rights to the code are retained by the author. This project is for educational purposes only and may not be copied, distributed, modified, or used for commercial purposes without prior written permission.
 
 ---
 
