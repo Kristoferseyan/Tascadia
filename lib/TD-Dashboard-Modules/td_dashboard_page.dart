@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_task_application_page.dart';
 import '../utils/database_handler.dart';
 import '../utils/colors.dart';
 
 class TaskDoerDashboardPage extends StatefulWidget {
-  final String id; // Changed from `username` to `id`
+  final String id; 
 
   const TaskDoerDashboardPage({Key? key, required this.id}) : super(key: key);
 
@@ -30,7 +29,7 @@ class _TaskDoerDashboardPageState extends State<TaskDoerDashboardPage> {
     });
 
     try {
-      // Fetch tasks for the specific user ID
+      
       final taskData = await _dbHandler.fetchTasks(widget.id);
       setState(() {
         tasks = taskData.map<Map<String, dynamic>>((task) {
@@ -98,89 +97,90 @@ class _TaskDoerDashboardPageState extends State<TaskDoerDashboardPage> {
     );
   }
 
-  void _showTaskDetailsBottomSheet(BuildContext context, Map<String, dynamic> task) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.cardBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-      ),
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Task Details
-              Text(
-                task['title'],
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+void _showTaskDetailsBottomSheet(BuildContext context, Map<String, dynamic> task) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.cardBackground,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+    ),
+    isScrollControlled: true,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            
+            Text(
+              task['title'],
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            
+            const Text(
+              'Description:',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              task['description'],
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+
+            
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                ),
+                onPressed: () async {
+                  
+                  if (!task.containsKey('id') || task['id'] == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Task ID is missing.")),
+                    );
+                    return;
+                  }
+
+                  
+                  await _dbHandler.applyForTask(
+                    taskId: task['id'], 
+                    taskDoerId: widget.id, 
+                  );
+
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskApplicationPage(task: task),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Accept Task',
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
-              const SizedBox(height: 10),
-              const Text(
-                'Description:',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                task['description'],
-                style: const TextStyle(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 20),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
-              Align(
-                alignment: Alignment.center,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                  ),
-                  onPressed: () async {
-                    try {
-                      // Ensure the task ID exists
-                      if (!task.containsKey('id') || task['id'] == null) {
-                        throw Exception("Task ID is missing.");
-                      }
-
-                      // Apply for the task
-                      await _dbHandler.applyForTask(
-                        taskId: task['id'], // Task ID from tasks table
-                        taskDoerId: widget.id, // User ID from users table
-                      );
-
-                      // Redirect to Task Application Page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskApplicationPage(task: task),
-                        ),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${e.toString()}')),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Accept Task',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildTaskCard(Map<String, dynamic> task) {
     return Card(

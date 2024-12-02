@@ -6,7 +6,7 @@ import 'package:tascadia_prototype/TD-Dashboard-Modules/td_message_page.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_task_history_page.dart';
 
 class TaskDoerHomePage extends StatefulWidget {
-  final String id; // Changed to `id`
+  final String id;
 
   const TaskDoerHomePage({Key? key, required this.id}) : super(key: key);
 
@@ -22,13 +22,13 @@ class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
   void initState() {
     super.initState();
 
-    // Debugging Print Statement
+    
     print("User ID: ${widget.id}");
 
     _checkAuthentication();
 
     _pages = [
-      TaskDoerDashboardPage(id: widget.id), // Updated parameter to `id`
+      TaskDoerDashboardPage(id: widget.id), 
       TaskDoerMessagesPage(id: widget.id),
       TaskDoerTaskHistoryPage(id: widget.id),
     ];
@@ -36,15 +36,7 @@ class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
 
   Future<void> _checkAuthentication() async {
     final currentUser = Supabase.instance.client.auth.currentUser;
-
-    if (currentUser == null) {
-      print("No active session found."); // Debugging
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacementNamed(context, '/login');
-      });
-    } else {
-      print("Authenticated User: ${currentUser.id}"); // Debugging
-    }
+    print('logged in user: $currentUser');
   }
 
   void _onTabChange(int index) {

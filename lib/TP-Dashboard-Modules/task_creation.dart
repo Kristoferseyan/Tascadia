@@ -20,7 +20,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
   String _category = 'Tech';
   DateTime _dueDate = DateTime.now();
   String _budget = '';
-  String _address = ''; // New field for address
+  String _address = ''; 
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -62,7 +62,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
           postedBy: widget.userId,
           dueDate: _dueDate,
           budget: double.tryParse(_budget),
-          address: _address, // Save the address
+          address: _address, 
         );
         print("Task saved successfully");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +126,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(
-                labelText: 'Address', // New input for address
+                labelText: 'Address', 
                 labelStyle: TextStyle(color: AppColors.textMuted),
                 focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.accent),

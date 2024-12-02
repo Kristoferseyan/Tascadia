@@ -82,24 +82,16 @@ Future<void> applyForTask({
   required String taskId,
   required String taskDoerId,
 }) async {
-  try {
-    final response = await _client.from('task_applications').insert({
-      'task_id': taskId,
-      'task_doer_id': taskDoerId,
-      'status': 'Pending',
-      'created_at': DateTime.now().toIso8601String(),
-    });
+  await _client.from('task_applications').insert({
+    'task_id': taskId,
+    'task_doer_id': taskDoerId,
+    'status': 'Pending',
+    'created_at': DateTime.now().toIso8601String(),
+  });
 
-    if (response == null || response.isEmpty) {
-      throw Exception('Failed to apply for the task.');
-    }
-
-    print("Application submitted successfully for task ID: $taskId");
-  } catch (e) {
-    print("Error applying for task: $e");
-    throw Exception('Failed to apply for the task: $e');
-  }
+  print("Application submitted successfully for task ID: $taskId");
 }
+
 
 
 
@@ -145,6 +137,7 @@ Future<void> applyForTask({
 
       return response;
     } catch (e) {
+      print(e);
       throw Exception('Failed to login user: $e');
     }
   }
