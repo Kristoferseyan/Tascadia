@@ -52,7 +52,7 @@ Future<void> addTask({
   required String category,
   required String postedBy,
   DateTime? dueDate,
-  double? budget,
+  double? budget, required String address,
 }) async {
   try {
     final response = await _client.from('tasks').insert({

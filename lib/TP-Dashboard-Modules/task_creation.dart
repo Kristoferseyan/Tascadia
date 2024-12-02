@@ -20,6 +20,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
   String _category = 'Tech';
   DateTime _dueDate = DateTime.now();
   String _budget = '';
+  String _address = ''; // New field for address
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -49,36 +50,35 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
     }
   }
 
-Future<void> _saveTask() async {
-  if (_formKey.currentState!.validate()) {
-    print("Validation passed");
-    _formKey.currentState!.save();
-    try {
-      
-      await dbHandler.addTask(
-        title: _title,
-        description: _description,
-        category: _category,
-        postedBy: widget.userId, 
-        dueDate: _dueDate,
-        budget: double.tryParse(_budget),
-      );
-      print("Task saved successfully");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Task created successfully!")),
-      );
-      Navigator.pop(context); 
-    } catch (e) {
-      print("Error saving task: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error creating task: $e")),
-      );
+  Future<void> _saveTask() async {
+    if (_formKey.currentState!.validate()) {
+      print("Validation passed");
+      _formKey.currentState!.save();
+      try {
+        await dbHandler.addTask(
+          title: _title,
+          description: _description,
+          category: _category,
+          postedBy: widget.userId,
+          dueDate: _dueDate,
+          budget: double.tryParse(_budget),
+          address: _address, // Save the address
+        );
+        print("Task saved successfully");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Task created successfully!")),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        print("Error saving task: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error creating task: $e")),
+        );
+      }
+    } else {
+      print("Validation failed");
     }
-  } else {
-    print("Validation failed");
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +122,19 @@ Future<void> _saveTask() async {
               maxLines: 3,
               validator: (value) => value!.isEmpty ? 'Please enter a description' : null,
               onSaved: (value) => _description = value!,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Address', // New input for address
+                labelStyle: TextStyle(color: AppColors.textMuted),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.accent),
+                ),
+              ),
+              style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => value!.isEmpty ? 'Please enter an address' : null,
+              onSaved: (value) => _address = value!,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
