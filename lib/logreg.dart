@@ -21,97 +21,92 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
 
   final DatabaseHandler dbHandler = DatabaseHandler(); 
 
-  
   Future<void> saveUserIdLocally(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', userId);
   }
 
-  
-void authenticateUser() async {
-  final usernameOrEmail = usernameController.text.isNotEmpty
-      ? usernameController.text
-      : emailController.text;
-  final password = passwordController.text;
+  void authenticateUser() async {
+    final usernameOrEmail = usernameController.text.isNotEmpty
+        ? usernameController.text
+        : emailController.text;
+    final password = passwordController.text;
 
-  if (usernameOrEmail.isNotEmpty && password.isNotEmpty) {
-    try {
-      final user = await dbHandler.loginUser(
-        usernameOrEmail: usernameOrEmail,
-        password: password,
-      );
+    if (usernameOrEmail.isNotEmpty && password.isNotEmpty) {
+      try {
+        final user = await dbHandler.loginUser(
+          usernameOrEmail: usernameOrEmail,
+          password: password,
+        );
 
-      
-      await saveUserIdLocally(user['id']);
+        await saveUserIdLocally(user['id']); // Save user ID locally
 
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => widget.role == 'TaskPoster'
-              ? HomePage(username: user['username']) 
-              : TaskDoerHomePage(username: user['username']), 
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Please fill in all fields")),
-    );
-  }
-}
-
-void registerUser() async {
-  final username = usernameController.text.trim();
-  final email = emailController.text.trim();
-  final password = passwordController.text.trim();
-
-  if (username.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
-    try {
-      await dbHandler.registerUser(
-        username: username,
-        email: email,
-        password: password,
-        role: widget.role,
-      );
-
-      final user = await dbHandler.loginUser(
-        usernameOrEmail: username,
-        password: password,
-      );
-
-      if (user != null && user['username'] != null) {
-        await saveUserIdLocally(user['id']);
-
-        
+        // Navigate to the appropriate home page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => widget.role == 'TaskPoster'
-                ? HomePage(username: user['username']) 
-                : TaskDoerHomePage(username: user['username']), 
+                ? HomePage(id: user['id']) // Pass ID
+                : TaskDoerHomePage(id: user['id']), // Pass ID
           ),
         );
-      } else {
-        throw Exception('User data is incomplete.');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       }
-    } catch (e) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        const SnackBar(content: Text("Please fill in all fields")),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Please fill in all fields")),
-    );
   }
-}
 
+  void registerUser() async {
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
+    if (username.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+      try {
+        await dbHandler.registerUser(
+          username: username,
+          email: email,
+          password: password,
+          role: widget.role,
+        );
+
+        final user = await dbHandler.loginUser(
+          usernameOrEmail: username,
+          password: password,
+        );
+
+        if (user != null && user['id'] != null) {
+          await saveUserIdLocally(user['id']); // Save user ID locally
+
+          // Navigate to the appropriate home page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => widget.role == 'TaskPoster'
+                  ? HomePage(id: user['id']) // Pass ID
+                  : TaskDoerHomePage(id: user['id']), // Pass ID
+            ),
+          );
+        } else {
+          throw Exception('User data is incomplete.');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill in all fields")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

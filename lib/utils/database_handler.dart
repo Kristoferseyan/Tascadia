@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DatabaseHandler {
   final SupabaseClient _client = Supabase.instance.client;
 
-  /// Singleton Pattern
   static final DatabaseHandler _instance = DatabaseHandler._internal();
   factory DatabaseHandler() => _instance;
   DatabaseHandler._internal();
@@ -32,7 +31,7 @@ Future<List<dynamic>> fetchTasks(String userId) async {
   try {
     final response = await _client
         .from('tasks')
-        .select('title, description, budget, category, due_date, status, posted_by, created_at, address')
+        .select('id, title, description, budget, category, due_date, status, posted_by, created_at, address')
         .order('created_at', ascending: false);
 
     if (response == null || response.isEmpty) {
@@ -51,7 +50,7 @@ Future<void> addTask({
   required String description,
   required String category,
   required String postedBy,
-  required String address, // Added address as a required parameter
+  required String address, 
   DateTime? dueDate,
   double? budget,
 }) async {
@@ -63,8 +62,8 @@ Future<void> addTask({
       'due_date': dueDate?.toIso8601String(),
       'budget': budget,
       'posted_by': postedBy,
-      'address': address, // Added address to the database payload
-      'status': 'Pending', // Default status
+      'address': address, 
+      'status': 'Pending', 
     }).select();
 
     if (response == null || response.isEmpty) {
@@ -75,6 +74,30 @@ Future<void> addTask({
   } catch (e) {
     print("Error adding task: $e");
     throw Exception('Failed to add task: $e');
+  }
+}
+
+
+Future<void> applyForTask({
+  required String taskId,
+  required String taskDoerId,
+}) async {
+  try {
+    final response = await _client.from('task_applications').insert({
+      'task_id': taskId,
+      'task_doer_id': taskDoerId,
+      'status': 'Pending',
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    if (response == null || response.isEmpty) {
+      throw Exception('Failed to apply for the task.');
+    }
+
+    print("Application submitted successfully for task ID: $taskId");
+  } catch (e) {
+    print("Error applying for task: $e");
+    throw Exception('Failed to apply for the task: $e');
   }
 }
 
@@ -113,7 +136,7 @@ Future<void> addTask({
           .from('users')
           .select()
           .or('username.eq.$usernameOrEmail,email.eq.$usernameOrEmail')
-          .eq('password', password) // Hash and compare in production
+          .eq('password', password)
           .single();
 
       if (response == null) {
@@ -140,12 +163,30 @@ Future<void> addTask({
       throw Exception('Failed to fetch user by ID: $e');
     }
   }
+  Future<String> fetchUsername(String userId) async {
+    try {
+      final response = await _client
+          .from('users')
+          .select('username')
+          .eq('id', userId)
+          .single();
+
+      if (response == null || response['username'] == null) {
+        throw Exception('User not found.');
+      }
+
+      return response['username'];
+    } catch (e) {
+      print('Error fetching username: $e');
+      throw Exception('Failed to fetch username: $e');
+    }
+  }
 
   /// Get logged-in user's ID
   Future<String?> getCurrentUserId() async {
     try {
       final session = _client.auth.currentSession;
-      if (session != null && session.user != null) {
+      if (session != null) {
         return session.user?.id;
       } else {
         throw Exception('No active session found. User might not be logged in.');

@@ -5,9 +5,9 @@ import '../utils/colors.dart';
 import '../utils/database_handler.dart';
 
 class TaskPosterDashboard extends StatefulWidget {
-  final String username;
+  final String id; // Changed to `id`
 
-  const TaskPosterDashboard({Key? key, required this.username}) : super(key: key);
+  const TaskPosterDashboard({Key? key, required this.id}) : super(key: key);
 
   @override
   _TaskPosterDashboardState createState() => _TaskPosterDashboardState();
@@ -19,26 +19,21 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   List<dynamic> tasks = [];
   String userName = 'User';
   bool isLoading = true;
-  String userId = '';
 
   @override
   void initState() {
     super.initState();
-    fetchUserDataAndTasks(widget.username);
+    fetchUserDataAndTasks(widget.id); // Use `id` directly
   }
 
-  Future<void> fetchUserDataAndTasks(String username) async {
+  Future<void> fetchUserDataAndTasks(String userId) async {
     try {
-      print("Fetching user ID for username: $username");
+      print("Fetching data for user ID: $userId");
 
-      final fetchedUserId = await dbHandler.fetchUserIdByUsername(username);
-      if (fetchedUserId == null) throw Exception("User not found.");
-
-      final userData = await dbHandler.fetchUserById(fetchedUserId);
-      final fetchedTasks = await dbHandler.fetchTasks(fetchedUserId);
+      final userData = await dbHandler.fetchUserById(userId);
+      final fetchedTasks = await dbHandler.fetchTasks(userId);
 
       setState(() {
-        userId = fetchedUserId;
         userName = userData['username'] ?? 'User';
         tasks = fetchedTasks;
         isLoading = false;
@@ -57,7 +52,7 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
   }
 
   void _showTaskCreationModal() {
-    if (userId.isEmpty) {
+    if (widget.id.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error: User ID not available.')),
       );
@@ -78,7 +73,7 @@ class _TaskPosterDashboardState extends State<TaskPosterDashboard> {
           top: 16.0,
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: TaskCreationForm(userId: userId),
+        child: TaskCreationForm(userId: widget.id),
       ),
     );
   }

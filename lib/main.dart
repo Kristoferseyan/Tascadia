@@ -47,21 +47,21 @@ class TascadiaApp extends StatelessWidget {
         '/store': (context) => const StorePage(),
         '/settings': (context) => SettingsPage(),
         '/taskdoer_home': (context) => TaskDoerHomePage(
-          username: ModalRoute.of(context)!.settings.arguments as String,
+          id: ModalRoute.of(context)!.settings.arguments as String, // Changed to `id`
         ),
         '/taskdoer_dashboard': (context) => TaskDoerDashboardPage(
-          username: ModalRoute.of(context)!.settings.arguments as String,
+          id: ModalRoute.of(context)!.settings.arguments as String, // Changed to `id`
         ),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/dashboard') {
-          final username = settings.arguments as String?;
-          if (username != null) {
+          final id = settings.arguments as String?;
+          if (id != null) {
             return MaterialPageRoute(
-              builder: (context) => HomePage(username: username),
+              builder: (context) => HomePage(id: id), // Changed to `id`
             );
           }
-          return _errorRoute("Missing username for dashboard");
+          return _errorRoute("Missing ID for dashboard");
         }
 
         if (settings.name == '/login_register') {

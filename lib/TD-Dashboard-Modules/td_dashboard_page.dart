@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tascadia_prototype/TD-Dashboard-Modules/td_task_application_page.dart';
 import '../utils/database_handler.dart';
 import '../utils/colors.dart';
 
 class TaskDoerDashboardPage extends StatefulWidget {
-  final String username;
+  final String id; // Changed from `username` to `id`
 
-  const TaskDoerDashboardPage({Key? key, required this.username}) : super(key: key);
+  const TaskDoerDashboardPage({Key? key, required this.id}) : super(key: key);
 
   @override
   _TaskDoerDashboardPageState createState() => _TaskDoerDashboardPageState();
@@ -22,48 +24,52 @@ class _TaskDoerDashboardPageState extends State<TaskDoerDashboardPage> {
     fetchTasks();
   }
 
- Future<void> fetchTasks() async {
-  setState(() {
-    isLoading = true;
-  });
+  Future<void> fetchTasks() async {
+    setState(() {
+      isLoading = true;
+    });
 
-  try {
-    final taskData = await _dbHandler.fetchTasks('');
-    setState(() {
-      tasks = taskData.map<Map<String, dynamic>>((task) {
-        return {
-          'title': task['title'],
-          'description': task['description'],
-          'budget': task['budget'],
-          'category': task['category'],
-          'due_date': task['due_date'] != null
-              ? DateTime.parse(task['due_date']).toString()
-              : 'No due date',
-          'address': task['address'] ?? 'No address specified',
-        };
-      }).toList();
-    });
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error fetching tasks: $e")),
-    );
-  } finally {
-    setState(() {
-      isLoading = false;
-    });
+    try {
+      // Fetch tasks for the specific user ID
+      final taskData = await _dbHandler.fetchTasks(widget.id);
+      setState(() {
+        tasks = taskData.map<Map<String, dynamic>>((task) {
+          return {
+            'id': task['id'],
+            'title': task['title'],
+            'description': task['description'],
+            'budget': task['budget'],
+            'category': task['category'],
+            'due_date': task['due_date'] != null
+                ? DateTime.parse(task['due_date']).toString()
+                : 'No due date',
+            'address': task['address'] ?? 'No address specified',
+          };
+        }).toList();
+      });
+
+      print("Tasks fetched for user ID ${widget.id}: $tasks");
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching tasks: $e")),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
+    print("Logged in as user ID: ${widget.id}");
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
-          'Welcome, ${widget.username}',
-          style: const TextStyle(color: AppColors.textPrimary),
+        title: const Text(
+          'Task Doer Dashboard',
+          style: TextStyle(color: AppColors.textPrimary),
         ),
         backgroundColor: AppColors.background,
         actions: [
@@ -92,113 +98,89 @@ class _TaskDoerDashboardPageState extends State<TaskDoerDashboardPage> {
     );
   }
 
-void _showTaskDetailsBottomSheet(BuildContext context, Map<String, dynamic> task) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: AppColors.cardBackground,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-    ),
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task['title'],
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            const Text(
-              'Description:',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              task['description'],
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Address:',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              task['address'],
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Budget:',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              '₱${task['budget']}',
-              style: const TextStyle(color: AppColors.accent),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Due Date:',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              task['due_date'],
-              style: const TextStyle(color: AppColors.textMuted),
-            ),
-            const SizedBox(height: 5),
-            const SizedBox(height: 20),
-
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Accepted task: ${task['title']}')),
-                  );
-                  Navigator.of(context).pop();
-                },
-                child: const Text(
-                  'Accept Task',
-                  style: TextStyle(color: Colors.black),
+  void _showTaskDetailsBottomSheet(BuildContext context, Map<String, dynamic> task) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Task Details
+              Text(
+                task['title'],
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+              const SizedBox(height: 10),
+              const Text(
+                'Description:',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                task['description'],
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 20),
 
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                  ),
+                  onPressed: () async {
+                    try {
+                      // Ensure the task ID exists
+                      if (!task.containsKey('id') || task['id'] == null) {
+                        throw Exception("Task ID is missing.");
+                      }
+
+                      // Apply for the task
+                      await _dbHandler.applyForTask(
+                        taskId: task['id'], // Task ID from tasks table
+                        taskDoerId: widget.id, // User ID from users table
+                      );
+
+                      // Redirect to Task Application Page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskApplicationPage(task: task),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: ${e.toString()}')),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Accept Task',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildTaskCard(Map<String, dynamic> task) {
     return Card(

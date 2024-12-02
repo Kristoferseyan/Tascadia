@@ -1,18 +1,53 @@
 import 'package:flutter/material.dart';
+import '../utils/database_handler.dart';
 
-class TaskDoerMessagesPage extends StatelessWidget {
-  final String username;
+class TaskDoerMessagesPage extends StatefulWidget {
+  final String id;
 
-  const TaskDoerMessagesPage({Key? key, required this.username}) : super(key: key);
+  const TaskDoerMessagesPage({Key? key, required this.id}) : super(key: key);
+
+  @override
+  _TaskDoerMessagesPageState createState() => _TaskDoerMessagesPageState();
+}
+
+class _TaskDoerMessagesPageState extends State<TaskDoerMessagesPage> {
+  final DatabaseHandler _dbHandler = DatabaseHandler();
+  String username = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsername();
+  }
+
+  Future<void> _fetchUsername() async {
+    try {
+      final fetchedUsername = await _dbHandler.fetchUsername(widget.id);
+      setState(() {
+        username = fetchedUsername;
+        isLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching username: $e')),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text(
-          'Welcome to Messages, $username!',
-          style: const TextStyle(color: Colors.white),
-        ),
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : Text(
+                'Welcome to Messages, $username!',
+                style: const TextStyle(color: Colors.white),
+              ),
       ),
     );
   }

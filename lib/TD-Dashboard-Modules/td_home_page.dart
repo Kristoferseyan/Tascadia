@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_dashboard_page.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_message_page.dart';
 import 'package:tascadia_prototype/TD-Dashboard-Modules/td_task_history_page.dart';
 
 class TaskDoerHomePage extends StatefulWidget {
-  final String username;
+  final String id; // Changed to `id`
 
-  const TaskDoerHomePage({Key? key, required this.username}) : super(key: key);
+  const TaskDoerHomePage({Key? key, required this.id}) : super(key: key);
 
   @override
   _TaskDoerHomePageState createState() => _TaskDoerHomePageState();
@@ -15,19 +16,35 @@ class TaskDoerHomePage extends StatefulWidget {
 
 class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
   int _selectedIndex = 0;
-
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
 
-    
+    // Debugging Print Statement
+    print("User ID: ${widget.id}");
+
+    _checkAuthentication();
+
     _pages = [
-      TaskDoerDashboardPage(username: widget.username),
-      TaskDoerMessagesPage(username: widget.username),
-      TaskDoerTaskHistoryPage(username: widget.username),
+      TaskDoerDashboardPage(id: widget.id), // Updated parameter to `id`
+      TaskDoerMessagesPage(id: widget.id),
+      TaskDoerTaskHistoryPage(id: widget.id),
     ];
+  }
+
+  Future<void> _checkAuthentication() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+
+    if (currentUser == null) {
+      print("No active session found."); // Debugging
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/login');
+      });
+    } else {
+      print("Authenticated User: ${currentUser.id}"); // Debugging
+    }
   }
 
   void _onTabChange(int index) {
@@ -39,7 +56,7 @@ class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex], 
+      body: _pages[_selectedIndex],
       bottomNavigationBar: TaskDoerNavBar(
         selectedIndex: _selectedIndex,
         onTabChange: _onTabChange,

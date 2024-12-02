@@ -5,9 +5,9 @@ import 'package:tascadia_prototype/Settings-Modules/tp_settings_page.dart';
 import 'package:tascadia_prototype/tp_store_page.dart';
 
 class HomePage extends StatefulWidget {
-  final String username; 
+  final String id; 
 
-  const HomePage({Key? key, required this.username}) : super(key: key);
+  const HomePage({Key? key, required this.id}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
     
     _pages = [
       StorePage(), 
-      TaskPosterDashboard(username: widget.username), 
+      TaskPosterDashboard(id: widget.id), 
       SettingsPage(), 
     ];
   }
