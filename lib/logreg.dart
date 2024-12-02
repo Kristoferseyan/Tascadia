@@ -41,16 +41,16 @@ void authenticateUser() async {
         password: password,
       );
 
-      // Save user ID locally
+      
       await saveUserIdLocally(user['id']);
 
-      // Redirect to the appropriate home page
+      
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => widget.role == 'TaskPoster'
-              ? HomePage(username: user['username']) // Task Poster Home Page
-              : TaskDoerHomePage(username: user['username']), // Task Doer Home Page
+              ? HomePage(username: user['username']) 
+              : TaskDoerHomePage(username: user['username']), 
         ),
       );
     } catch (e) {
@@ -87,13 +87,13 @@ void registerUser() async {
       if (user != null && user['username'] != null) {
         await saveUserIdLocally(user['id']);
 
-        // Redirect to the appropriate home page
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => widget.role == 'TaskPoster'
-                ? HomePage(username: user['username']) // Task Poster Home Page
-                : TaskDoerHomePage(username: user['username']), // Task Doer Home Page
+                ? HomePage(username: user['username']) 
+                : TaskDoerHomePage(username: user['username']), 
           ),
         );
       } else {

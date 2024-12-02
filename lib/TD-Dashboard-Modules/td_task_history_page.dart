@@ -8,10 +8,6 @@ class TaskDoerTaskHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Task History'),
-        backgroundColor: const Color(0xFF2A2B39),
-      ),
       body: Center(
         child: Text(
           'Task History for $username.',

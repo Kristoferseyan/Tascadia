@@ -8,10 +8,6 @@ class TaskDoerMessagesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Messages'),
-        backgroundColor: const Color(0xFF2A2B39),
-      ),
       body: Center(
         child: Text(
           'Welcome to Messages, $username!',

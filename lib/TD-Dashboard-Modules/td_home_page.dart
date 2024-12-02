@@ -22,7 +22,7 @@ class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
   void initState() {
     super.initState();
 
-    // Define pages for the nav bar
+    
     _pages = [
       TaskDoerDashboardPage(username: widget.username),
       TaskDoerMessagesPage(username: widget.username),
@@ -39,7 +39,7 @@ class _TaskDoerHomePageState extends State<TaskDoerHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex], // Switch pages based on selected index
+      body: _pages[_selectedIndex], 
       bottomNavigationBar: TaskDoerNavBar(
         selectedIndex: _selectedIndex,
         onTabChange: _onTabChange,
