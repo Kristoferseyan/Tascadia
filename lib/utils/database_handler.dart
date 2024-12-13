@@ -122,71 +122,88 @@ Future<List<Map<String, dynamic>>> fetchAvailableTasks() async {
     print("Application submitted successfully for task ID: $taskId");
   }
 
+  
   Future<List<dynamic>> fetchPendingApplicationsForPoster(String posterId) async {
-    final taskApplications = await _client
-        .from('task_applications')
-        .select('id, task_id, task_doer_id') 
-        .eq('status', 'Pending');
+    try {
+      final taskApplications = await _client
+          .from('task_applications')
+          .select('id, task_id, task_doer_id')
+          .eq('status', 'Pending');
 
-    final taskApplicationsWithAlias = taskApplications.map((application) {
-      return {
-        'application_id': application['id'], 
-        'task_id': application['task_id'],
-        'task_doer_id': application['task_doer_id'],
-      };
-    }).toList();
+      final tasks = await _client
+          .from('tasks')
+          .select('id, title, posted_by')
+          .eq('posted_by', posterId);
 
-    final tasks = await _client
-        .from('tasks')
-        .select('id, title, posted_by')
-        .eq('posted_by', posterId);
+      final users = await _client
+          .from('users')
+          .select('id, username');
 
-    final users = await _client
-        .from('users')
-        .select('id, username');
+      final applications = taskApplications.map((application) {
+        final task = tasks.firstWhere((t) => t['id'] == application['task_id'], orElse: () => {});
+        final user = users.firstWhere((u) => u['id'] == application['task_doer_id'], orElse: () => {});
 
-    final applications = taskApplicationsWithAlias.map((application) {
-      final task = tasks.firstWhere((t) => t['id'] == application['task_id'], orElse: () => {});
-      final user = users.firstWhere((u) => u['id'] == application['task_doer_id'], orElse: () => {});
+        if (task != null && user != null) {
+          return {
+            'application_id': application['id'],
+            'task_id': application['task_id'],
+            'task_title': task['title'],
+            'task_doer_name': user['username'],
+            'task_doer_id': application['task_doer_id'],
+          };
+        }
+        return null;
+      }).where((app) => app != null).toList();
 
-      if (task != null && user != null) {
-        return {
-          'application_id': application['application_id'], 
-          'task_id': application['task_id'],
-          'task_title': task['title'],
-          'task_doer_name': user['username'],
-          'task_doer_id': application['task_doer_id'],
-        };
-      }
-      return null;
-    }).where((app) => app != null).toList();
-
-    return applications;
+      return applications;
+    } catch (e) {
+      throw Exception('Failed to fetch pending applications: $e');
+    }
   }
 
+  
   Future<void> sendNotificationToTaskDoer({
     required String taskDoerId,
     required String message,
   }) async {
-    await _client.from('notifications').insert({
-      'user_id': taskDoerId,
-      'message': message,
-      'created_at': DateTime.now().toIso8601String(),
-    });
+    try {
+      await _client.from('notifications').insert({
+        'task_doer_id': taskDoerId,
+        'message': message,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to send notification: $e');
+    }
   }
 
+  
+  Future<List<Map<String, dynamic>>> fetchNotificationsForUser(String taskDoerId) async {
+    try {
+      final response = await _client
+          .from('notifications')
+          .select()
+          .eq('task_doer_id', taskDoerId)
+          .order('created_at', ascending: false);
 
-Future<List<Map<String, dynamic>>> fetchNotificationsForUser(String taskDoerId) async {
-  final response = await _client
-      .from('notifications')  
-      .select()  
-      .eq('task_doer_id', taskDoerId)  
-      .order('created_at', ascending: false);  
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch notifications: $e');
+    }
+  }
 
-  return List<Map<String, dynamic>>.from(response);  
+Future<void> deleteNotification({required String taskDoerId, required String taskId}) async {
+  try {
+    await _client
+        .from('notifications')
+        .delete()
+        .eq('task_doer_id', taskDoerId)
+        .eq('task_id', taskId); 
+  } catch (e) {
+    print("Error deleting notification: $e");
+    throw Exception('Failed to delete notification: $e');
+  }
 }
-
-
 
 
   Future<void> deleteApplication({

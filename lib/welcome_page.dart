@@ -12,7 +12,7 @@ class WelcomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              "Welcome to Tascadia",
+              "Welcome to TaskFinder!",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFFF9C270),

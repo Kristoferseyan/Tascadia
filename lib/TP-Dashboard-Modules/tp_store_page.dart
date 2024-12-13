@@ -48,7 +48,7 @@ class StorePage extends StatelessWidget {
                   _buildStoreItem(
                     title: "Additional Task Posting",
                     description: "Add 5 more task posts to your account.",
-                    price: "₱70.00",
+                    price: "₱50.00",
                     onTap: () {
                       _showPurchaseDialog(context, "Additional Task Posting", "₱70.00");
                     },
@@ -57,8 +57,8 @@ class StorePage extends StatelessWidget {
                   _buildStoreItem(
                     title: "Premium Membership",
                     description:
-                        "Unlock unlimited task postings and priority support.",
-                    price: "₱500.00",
+                        "Unlock unlimited task postings and no comission fees.",
+                    price: "₱119.00",
                     onTap: () {
                       _showPurchaseDialog(context, "Premium Membership", "₱500.00");
                     },

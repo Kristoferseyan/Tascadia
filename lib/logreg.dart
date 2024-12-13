@@ -97,9 +97,6 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
           throw Exception('User data is incomplete.');
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

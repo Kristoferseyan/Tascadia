@@ -10,82 +10,90 @@ class TaskApplicationReviewPage extends StatelessWidget {
       : super(key: key);
 
 void _approveApplication(BuildContext context) async {
-  print("Application ID: ${application['application_id']}");
-  print("Task ID: ${application['task_id']}");
-  print("Task Doer ID: ${application['task_doer_id']}");
-  print("Task Title: ${application['task_title']}");
+  try {
+    print("Application ID: ${application['application_id']}");
+    print("Task ID: ${application['task_id']}");
+    print("Task Doer ID: ${application['task_doer_id']}");
+    print("Task Title: ${application['task_title']}");
 
-  final applicationId = application['application_id'];
-  final taskId = application['task_id'];
-  final taskDoerId = application['task_doer_id'];
-  final taskTitle = application['task_title'] ?? "Unknown Task";
+    final applicationId = application['application_id'];
+    final taskId = application['task_id'];
+    final taskDoerId = application['task_doer_id'];
+    final taskTitle = application['task_title'] ?? "Unknown Task";
 
-  
-  if (applicationId != null && taskId != null && taskDoerId != null) {
-    
-    await dbHandler.updateApplicationStatus(
-      applicationId: applicationId,
-      status: 'Approved',
-    );
+    if (applicationId != null && taskId != null && taskDoerId != null) {
+      
+      await dbHandler.updateApplicationStatus(
+        applicationId: applicationId,
+        status: 'Approved',
+      );
 
-    
-    await dbHandler.updateTaskStatus(
-      taskId: taskId,
-      status: 'In Progress',
-    );
-
-    
-    await dbHandler.sendNotificationToTaskDoer(
-      taskDoerId: taskDoerId,
-      message: "Your application for '$taskTitle' has been approved!",
-    );
-
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Application approved successfully!')),
-    );
-
-    Navigator.pop(context);
-  } else {
-    
-    print("Missing required IDs: applicationId: $applicationId, taskId: $taskId, taskDoerId: $taskDoerId");
-  }
-}
-
-
-  void _rejectApplication(BuildContext context) async {
-    try {
-      final applicationId = application['application_id'] ?? "";
-      final taskDoerId = application['task_doer_id'] ?? "";
-      final taskTitle = application['task_title'] ?? "Unknown Task";
-
-      if (applicationId.isEmpty || taskDoerId.isEmpty) {
-        throw Exception("Invalid application data. Missing required IDs.");
-      }
+      
+      await dbHandler.updateTaskStatus(
+        taskId: taskId,
+        status: 'In Progress',
+      );
 
       
       await dbHandler.sendNotificationToTaskDoer(
         taskDoerId: taskDoerId,
-        message: "Your application for '$taskTitle' has been rejected.",
+        message: "Your application for '$taskTitle' has been approved!",
       );
 
       
-      await dbHandler.deleteApplication(
-        applicationId: applicationId,
-      );
+      await dbHandler.deleteNotification(taskDoerId: taskDoerId, taskId: taskId);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application rejected successfully!')),
+        const SnackBar(content: Text('Application approved successfully!')),
       );
 
       Navigator.pop(context);
-    } catch (e) {
-      print("Error rejecting application: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error rejecting application: $e')),
-      );
+    } else {
+      print("Missing required IDs: applicationId: $applicationId, taskId: $taskId, taskDoerId: $taskDoerId");
     }
+  } catch (e) {
+    print("Error approving application: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error approving application: $e')),
+    );
   }
+}
+
+
+void _rejectApplication(BuildContext context) async {
+  try {
+    final applicationId = application['application_id'] ?? "";
+    final taskDoerId = application['task_doer_id'] ?? "";
+    final taskTitle = application['task_title'] ?? "Unknown Task";
+
+    if (applicationId.isEmpty || taskDoerId.isEmpty) {
+      throw Exception("Invalid application data. Missing required IDs.");
+    }
+
+    
+    await dbHandler.sendNotificationToTaskDoer(
+      taskDoerId: taskDoerId,
+      message: "Your application for '$taskTitle' has been rejected.",
+    );
+
+    
+    await dbHandler.deleteApplication(applicationId: applicationId);
+
+    
+    await dbHandler.deleteNotification(taskDoerId: taskDoerId, taskId: application['task_id']);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Application rejected successfully!')),
+    );
+
+    Navigator.pop(context);
+  } catch (e) {
+    print("Error rejecting application: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error rejecting application: $e')),
+    );
+  }
+}
 
 
   @override

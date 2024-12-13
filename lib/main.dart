@@ -50,7 +50,7 @@ class TascadiaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tascadia',
+      title: 'TaskFinder',
       theme: ThemeData(
         primaryColor: const Color(0xFFF9C270),
         scaffoldBackgroundColor: const Color(0xFF1E1F2B),
