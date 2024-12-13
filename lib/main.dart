@@ -22,13 +22,27 @@ Future<void> main() async {
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
     );
+
+    // Test connection by fetching data from a basic table (e.g., "users")
+    final response = await Supabase.instance.client
+        .from('users') // Replace 'users' with an existing table name
+        .select()
+        .limit(1)
+        .maybeSingle(); // Fetch a single record or null if no data exists
+
+    if (response == null) {
+      debugPrint("Supabase is reachable, but no data found in the 'users' table.");
+    } else {
+      debugPrint("Supabase is reachable. Test data: $response");
+    }
   } catch (e) {
-    debugPrint("Error initializing Supabase: $e");
+    debugPrint("Error initializing Supabase or testing connection: $e");
     return;
   }
 
   runApp(TascadiaApp());
 }
+
 
 final supabase = Supabase.instance.client;
 

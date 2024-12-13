@@ -7,8 +7,6 @@ class DatabaseHandler {
   factory DatabaseHandler() => _instance;
   DatabaseHandler._internal();
 
-
-
   Future<String?> fetchUserIdByUsername(String username) async {
     try {
       final response = await _client
@@ -26,168 +24,201 @@ class DatabaseHandler {
       throw Exception('Failed to fetch user ID by username: $e');
     }
   }
-  /// Fetch all tasks for a specific user
-Future<List<dynamic>> fetchTasks(String userId) async {
+
+  
+  Future<List<dynamic>> fetchTasks(String userId) async {
+    try {
+      final response = await _client
+          .from('tasks')
+          .select('id, title, description, budget, category, due_date, status, posted_by, created_at, address')
+          .eq('posted_by', userId)  
+          .order('created_at', ascending: false);
+
+      if (response == null || response.isEmpty) {
+        return [];
+      }
+      return response;
+    } catch (e) {
+      throw Exception('Failed to fetch tasks: $e');
+    }
+  }
+
+Future<List<Map<String, dynamic>>> fetchAvailableTasks() async {
   try {
     final response = await _client
         .from('tasks')
         .select('id, title, description, budget, category, due_date, status, posted_by, created_at, address')
+        .eq('status', 'Available') 
         .order('created_at', ascending: false);
-
+    
     if (response == null || response.isEmpty) {
-      return [];
-    }
-    return response;
-  } catch (e) {
-    throw Exception('Failed to fetch tasks: $e');
-  }
-}
-
-
-  /// Add a new task
-Future<void> addTask({
-  required String title,
-  required String description,
-  required String category,
-  required String postedBy,
-  required String address, 
-  DateTime? dueDate,
-  double? budget,
-}) async {
-  try {
-    final response = await _client.from('tasks').insert({
-      'title': title,
-      'description': description,
-      'category': category,
-      'due_date': dueDate?.toIso8601String(), 
-      'budget': budget,
-      'posted_by': postedBy,
-      'address': address, 
-      'status': 'Available', 
-    }).select();
-
-    if (response == null || response.isEmpty) {
-      throw Exception('Failed to insert the task into the database.');
+      throw Exception('No available tasks found');
     }
 
-    print("Task inserted successfully: $response");
-  } catch (e) {
-    print("Error adding task: $e");
-    throw Exception('Failed to add task: $e');
-  }
-}
-
-
-Future<void> applyForTask({
-  required String taskId,
-  required String taskDoerId,
-}) async {
-  await _client.from('task_applications').insert({
-    'task_id': taskId,
-    'task_doer_id': taskDoerId,
-    'status': 'Pending',
-    'created_at': DateTime.now().toIso8601String(),
-  });
-
-  print("Application submitted successfully for task ID: $taskId");
-}
-
-
-Future<List<dynamic>> fetchPendingApplicationsForPoster(String posterId) async {
-  
-  final taskApplications = await _client
-      .from('task_applications')
-      .select('id, task_id, task_doer_id') 
-      .eq('status', 'Pending');
-
-  
-  final taskApplicationsWithAlias = taskApplications.map((application) {
-    return {
-      'application_id': application['id'], 
-      'task_id': application['task_id'],
-      'task_doer_id': application['task_doer_id'],
-    };
-  }).toList();
-
-  
-  final tasks = await _client
-      .from('tasks')
-      .select('id, title, posted_by')
-      .eq('posted_by', posterId);
-
-  
-  final users = await _client
-      .from('users')
-      .select('id, username');
-
-  
-  final applications = taskApplicationsWithAlias.map((application) {
-    final task = tasks.firstWhere((t) => t['id'] == application['task_id'], orElse: () => {});
-    final user = users.firstWhere((u) => u['id'] == application['task_doer_id'], orElse: () => {});
-
-    if (task != null && user != null) {
+    return response.map<Map<String, dynamic>>((task) {
       return {
-        'application_id': application['application_id'], 
+        'id': task['id'],
+        'title': task['title'],
+        'description': task['description'],
+        'budget': task['budget'],
+        'category': task['category'],
+        'due_date': task['due_date'] != null
+            ? DateTime.parse(task['due_date']).toString()
+            : 'No due date',
+        'address': task['address'] ?? 'No address specified',
+      };
+    }).toList();
+  } catch (e) {
+    print("Error fetching available tasks: $e");
+    throw e;  
+  }
+}
+
+
+  
+  Future<void> addTask({
+    required String title,
+    required String description,
+    required String category,
+    required String postedBy,
+    required String address, 
+    DateTime? dueDate,
+    double? budget,
+  }) async {
+    try {
+      final response = await _client.from('tasks').insert({
+        'title': title,
+        'description': description,
+        'category': category,
+        'due_date': dueDate?.toIso8601String(), 
+        'budget': budget,
+        'posted_by': postedBy,
+        'address': address, 
+        'status': 'Available', 
+      }).select();
+
+      if (response == null || response.isEmpty) {
+        throw Exception('Failed to insert the task into the database.');
+      }
+
+      print("Task inserted successfully: $response");
+    } catch (e) {
+      print("Error adding task: $e");
+      throw Exception('Failed to add task: $e');
+    }
+  }
+
+  Future<void> applyForTask({
+    required String taskId,
+    required String taskDoerId,
+  }) async {
+    await _client.from('task_applications').insert({
+      'task_id': taskId,
+      'task_doer_id': taskDoerId,
+      'status': 'Pending',
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    print("Application submitted successfully for task ID: $taskId");
+  }
+
+  Future<List<dynamic>> fetchPendingApplicationsForPoster(String posterId) async {
+    final taskApplications = await _client
+        .from('task_applications')
+        .select('id, task_id, task_doer_id') 
+        .eq('status', 'Pending');
+
+    final taskApplicationsWithAlias = taskApplications.map((application) {
+      return {
+        'application_id': application['id'], 
         'task_id': application['task_id'],
-        'task_title': task['title'],
-        'task_doer_name': user['username'],
         'task_doer_id': application['task_doer_id'],
       };
-    }
-    return null;
-  }).where((app) => app != null).toList();
+    }).toList();
 
-  return applications;
+    final tasks = await _client
+        .from('tasks')
+        .select('id, title, posted_by')
+        .eq('posted_by', posterId);
+
+    final users = await _client
+        .from('users')
+        .select('id, username');
+
+    final applications = taskApplicationsWithAlias.map((application) {
+      final task = tasks.firstWhere((t) => t['id'] == application['task_id'], orElse: () => {});
+      final user = users.firstWhere((u) => u['id'] == application['task_doer_id'], orElse: () => {});
+
+      if (task != null && user != null) {
+        return {
+          'application_id': application['application_id'], 
+          'task_id': application['task_id'],
+          'task_title': task['title'],
+          'task_doer_name': user['username'],
+          'task_doer_id': application['task_doer_id'],
+        };
+      }
+      return null;
+    }).where((app) => app != null).toList();
+
+    return applications;
+  }
+
+  Future<void> sendNotificationToTaskDoer({
+    required String taskDoerId,
+    required String message,
+  }) async {
+    await _client.from('notifications').insert({
+      'user_id': taskDoerId,
+      'message': message,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+
+Future<List<Map<String, dynamic>>> fetchNotificationsForUser(String taskDoerId) async {
+  final response = await _client
+      .from('notifications')  
+      .select()  
+      .eq('task_doer_id', taskDoerId)  
+      .order('created_at', ascending: false);  
+
+  return List<Map<String, dynamic>>.from(response);  
 }
 
 
 
-Future<void> sendNotificationToTaskDoer({
-  required String taskDoerId,
-  required String message,
-}) async {
-  await _client.from('notifications').insert({
-    'user_id': taskDoerId,
-    'message': message,
-    'created_at': DateTime.now().toIso8601String(),
-  });
-}
 
+  Future<void> deleteApplication({
+    required String applicationId,
+  }) async {
+    await _client
+        .from('task_applications')
+        .delete()
+        .eq('id', applicationId);
+  }
 
-Future<void> deleteApplication({
-  required String applicationId,
-}) async {
-  await _client
-      .from('task_applications')
-      .delete()
-      .eq('id', applicationId);
-}
+  Future<void> updateTaskStatus({
+    required String taskId,
+    required String status,
+  }) async {
+    await _client
+        .from('tasks')
+        .update({'status': status})
+        .eq('id', taskId);
+  }
 
+  Future<void> updateApplicationStatus({
+    required String applicationId,
+    required String status,
+  }) async {
+    await _client
+        .from('task_applications')
+        .update({'status': status})
+        .eq('id', applicationId);
+  }
 
-Future<void> updateTaskStatus({
-  required String taskId,
-  required String status,
-}) async {
-  await _client
-      .from('tasks')
-      .update({'status': status})
-      .eq('id', taskId);
-}
-
-
-Future<void> updateApplicationStatus({
-  required String applicationId,
-  required String status,
-}) async {
-  await _client
-      .from('task_applications')
-      .update({'status': status})
-      .eq('id', applicationId);
-}
-
-
-
-  /// Register a new user
+  
   Future<void> registerUser({
     required String username,
     required String email,
@@ -210,7 +241,7 @@ Future<void> updateApplicationStatus({
     }
   }
 
-  /// Login with username or email and password
+  
   Future<dynamic> loginUser({
     required String usernameOrEmail,
     required String password,
@@ -234,7 +265,7 @@ Future<void> updateApplicationStatus({
     }
   }
 
-  /// Fetch user details by ID
+  
   Future<dynamic> fetchUserById(String userId) async {
     try {
       final response = await _client.from('users').select().eq('id', userId).single();
@@ -248,6 +279,7 @@ Future<void> updateApplicationStatus({
       throw Exception('Failed to fetch user by ID: $e');
     }
   }
+
   Future<String> fetchUsername(String userId) async {
     try {
       final response = await _client
@@ -267,7 +299,7 @@ Future<void> updateApplicationStatus({
     }
   }
 
-  /// Get logged-in user's ID
+  
   Future<String?> getCurrentUserId() async {
     try {
       final session = _client.auth.currentSession;
