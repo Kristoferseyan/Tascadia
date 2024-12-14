@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_dashboard_page.dart';
+import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_message_page.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_settings_page.dart';
 import 'package:tascadia_prototype/TP-Dashboard-Modules/tp_store_page.dart';
 
@@ -24,7 +25,8 @@ class _HomePageState extends State<HomePage> {
     
     _pages = [
       StorePage(), 
-      TaskPosterDashboard(id: widget.id), 
+      TaskPosterDashboard(id: widget.id),
+      TPMessagePage(id: widget.id),
       SettingsPage(), 
     ];
   }
@@ -73,6 +75,10 @@ class CustomNavBar extends StatelessWidget {
           GButton(
             icon: Icons.dashboard,
             text: 'Dashboard',
+          ),
+          GButton(
+            icon: Icons.message,
+            text: 'Messages',
           ),
           GButton(
             icon: Icons.settings,
