@@ -52,5 +52,8 @@ For questions or feedback, please contact:
 
 - **Gmail:** christophersean08@gmail.com
 - **Outlook:** nuevo.252501@gensan.sti.edu.ph
+## **Images**
+![462542264_1057430606160154_4508410112690768395_n](https://github.com/user-attachments/assets/7dd355bf-b534-4549-aa12-72f46e846485)
+![467486118_8792618947520756_8107311284585624263_n](https://github.com/user-attachments/assets/5bc744b8-3441-4beb-b0a6-42568b89af3d)
 
 ---
