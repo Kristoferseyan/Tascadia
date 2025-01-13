@@ -22,8 +22,6 @@ Future<void> main() async {
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
     );
-
-    
     final response = await Supabase.instance.client
         .from('users') 
         .select()
@@ -47,6 +45,8 @@ Future<void> main() async {
 final supabase = Supabase.instance.client;
 
 class TascadiaApp extends StatelessWidget {
+  const TascadiaApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,16 +55,17 @@ class TascadiaApp extends StatelessWidget {
         primaryColor: const Color(0xFFF9C270),
         scaffoldBackgroundColor: const Color(0xFF1E1F2B),
       ),
+      home: WelcomePage(), 
       initialRoute: '/welcomepage',
       routes: {
         '/welcomepage': (context) => WelcomePage(),
         '/store': (context) => const StorePage(),
         '/settings': (context) => SettingsPage(),
         '/taskdoer_home': (context) => TaskDoerHomePage(
-          id: ModalRoute.of(context)!.settings.arguments as String, 
+          id: ModalRoute.of(context)!.settings.arguments as String,
         ),
         '/taskdoer_dashboard': (context) => TaskDoerDashboardPage(
-          id: ModalRoute.of(context)!.settings.arguments as String, 
+          id: ModalRoute.of(context)!.settings.arguments as String,
         ),
       },
       onGenerateRoute: (settings) {
@@ -72,7 +73,7 @@ class TascadiaApp extends StatelessWidget {
           final id = settings.arguments as String?;
           if (id != null) {
             return MaterialPageRoute(
-              builder: (context) => HomePage(id: id), 
+              builder: (context) => HomePage(id: id),
             );
           }
           return _errorRoute("Missing ID for dashboard");
@@ -95,6 +96,7 @@ class TascadiaApp extends StatelessWidget {
   }
 
   Route<dynamic> _errorRoute(String errorMessage) {
+    debugPrint("Navigated to an unknown route: $errorMessage");
     return MaterialPageRoute(
       builder: (context) => Scaffold(
         appBar: AppBar(title: const Text("Error")),
