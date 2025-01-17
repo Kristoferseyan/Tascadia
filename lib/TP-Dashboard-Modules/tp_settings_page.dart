@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tascadia_prototype/welcome_page.dart';
 import '../utils/nav_bar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -11,7 +13,13 @@ class SettingsPage extends StatelessWidget {
       {'icon': Icons.lock, 'title': 'Privacy', 'onTap': () => print('Privacy tapped')},
       {'icon': Icons.notifications, 'title': 'Notifications', 'onTap': () => print('Notifications tapped')},
       {'icon': Icons.language, 'title': 'Language', 'onTap': () => print('Language tapped')},
-      {'icon': Icons.logout, 'title': 'Logout', 'onTap': () => print('Logout tapped')},
+      {'icon': Icons.logout, 
+        'title': 'Logout', 
+        'onTap': () async{
+          await Supabase.instance.client.auth.signOut();
+          Navigator.of(context).pushReplacementNamed('/welcomepage');
+        }
+      }
     ];
 
     return Scaffold(

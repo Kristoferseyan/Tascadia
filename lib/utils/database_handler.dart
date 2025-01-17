@@ -236,27 +236,20 @@ Future<void> deleteNotification({required String taskDoerId, required String tas
   }
 
   
-  Future<void> registerUser({
-    required String username,
-    required String email,
-    required String password,
-    required String role,
-  }) async {
-    try {
-      final response = await _client.from('users').insert({
-        'username': username,
-        'email': email,
-        'password': password,
-        'role': role,
-      });
+Future<void> registerUser({
+  required String username,
+  required String email,
+  required String password,
+  required String role,
+}) async {
+  final response = await _client.from('users').insert({
+    'username': username,
+    'email': email,
+    'password': password,
+    'role': role,
+  });
+}
 
-      if (response == null || response.containsKey('error')) {
-        throw Exception('Error registering user.');
-      }
-    } catch (e) {
-      throw Exception('Failed to register user: $e');
-    }
-  }
 
   
   Future<dynamic> loginUser({
