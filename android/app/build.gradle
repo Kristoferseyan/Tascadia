@@ -37,7 +37,7 @@ android {
             // Custom APK name for release build
             applicationVariants.all { variant ->
                 variant.outputs.each { output ->
-                    def outputFileName = "Tascadia_v1.0.0.apk"
+                    def outputFileName = "Tascadia_v${versionName}.apk"
                     output.outputFileName = outputFileName
                 }
             }
